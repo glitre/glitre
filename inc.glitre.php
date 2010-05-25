@@ -21,9 +21,23 @@ along with Glitre.  If not, see <http://www.gnu.org/licenses/>.
 
 */
 
-/*
-Funksjoner som benyttes av Pode musikkmashup
-*/
+require('File/MARCXML.php');
+
+function glitre_search($q) {
+	
+	global $config;
+	
+	$q = masser_input($q);
+	$query = '';
+	if (!empty($config['lib']['sru'])) {
+		// SRU
+		$query = urlencode($q);
+	} else {
+		// Z39.50
+		$query = "any=$q";
+	}
+	return podesearch($query);
+}
 
 /*
 Tar i mot det ferdige søkeuttrykket og bestemmer om det skal økes med SRU 
@@ -390,7 +404,7 @@ function sorter_artist_stigende($a, $b) {
     return strcmp($a["artist"], $b["artist"]);
 }
 
-function postvisning($id) {
+function glitre_record($id) {
 
 	global $config;
 	
