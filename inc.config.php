@@ -53,6 +53,13 @@ function get_config($lib) {
 		'system' => 'bibliofil',  
 		'z3950'  => 'z3950.deich.folkebibl.no:210/data'
 	);
+	$l['drmfb'] = array(
+		'name'  => 'Drammen folkebibliotek',
+		'records_max' => 11, 
+		'records_per_page' => 4, 
+		'system' => 'bibliofil',  
+		'z3950'  => 'z3950.drammen.folkebibl.no:2100/data'
+	);
 	$l['pode'] = array(
 		'name'    => 'Pode', 
 		'records_max' => 11, 
