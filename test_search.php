@@ -46,12 +46,12 @@ echo('
 </form>
 </div>' . "\n");
 
-// Søk
+// Search
 if (!empty($_GET['q'])) {
 	echo(glitre_search($_GET['q']));
 }
 
-// Postvisning	
+// Display one record	
 if (!empty($_GET['id'])) {
 	echo(glitre_record($_GET['id']));
 }
