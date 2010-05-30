@@ -1,4 +1,4 @@
-<?php 
+<?php
 
 /* 
 
@@ -21,7 +21,7 @@ along with Glitre.  If not, see <http://www.gnu.org/licenses/>.
 
 */
 
-$config = array();
+$config = array(); 
 
 /***************************************************************** 
 STEP ONE - Get the records and make sure they are standard MARCXML 
@@ -47,7 +47,35 @@ function glitre_search($args) {
 	}
 
 	// Format the records
-	return get_poster($marcxml, $config['max_records'], $postvisning);
+	return glitre_format($marcxml, $args['format']);
+}
+
+/***************************************
+STEP TWO - Format the records as desired 
+****************************************/
+
+function glitre_format($marcxml, $format){
+
+	global $config;
+
+	//Decide what to do based on $format
+	if ($format == 'raw') {
+		return $marcxml;
+	} elseif ($format == 'json') {
+		
+	// Try to split $format on .
+	} elseif (list($mode, $type) = explode('.', $format)) {
+		// TODO
+		$file = '/home/sites/div.libriotech.no/public/glitre/plugin/' . $type . '.php';
+		if (file_exists($file)) {
+			include($file);
+			return format($marcxml);
+		} else {
+			// TODO: Log false use of format
+			return "$file not found!";
+		}
+	}
+
 }
 
 /*
@@ -259,10 +287,6 @@ function get_poster ($marcxml, $limit, $postvisning) {
 	global $config; 
 	
 	$out = '';
-
-	if ($config['debug']) {
-		$out .= "\n\n <!-- \n\n $marcxml \n\n --> \n\n ";
-	}
 
 	require('File/MARCXML.php');
 	

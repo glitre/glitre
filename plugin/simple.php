@@ -21,17 +21,34 @@ along with Glitre.  If not, see <http://www.gnu.org/licenses/>.
 
 */
 
+function format($marcxml) {
 
+	require('File/MARCXML.php');
+	$records = new File_MARCXML($marcxml, File_MARC::SOURCE_STRING);
 
-// Hent ut MARC-postene fra strengen i $marcxml
-$poster = new File_MARCXML($marcxml, File_MARC::SOURCE_STRING);
+	$out = '';
+	
+	// Get the number of records
+	$count = count($records);
+echo($count);	
+	if ($count == 1) {
+	
+		$record = $records->next();
+		$data = get_basisinfo($record, true);
+		$out .= $data['post'];
+		$out .= get_detaljer($record);	  
+	  
+	} else {
+	
+		while ($record = $records->next()) {
+			$data = get_basisinfo($record, false);
+			$out .= $data['post'];
+		}
+	  
+	}
+	
+	return $out;
 
-// Gå igjennom postene
-while ($post = $poster->next()) {
-	$out .= '<p class="tilbake"><a href="javascript:history.go(-1)">Tilbake til trefflista</a></p>';
-	$data = get_basisinfo($post, true);
-	$out .= $data['post'];
-	$out .= get_detaljer($post);
 }
 
 /*
