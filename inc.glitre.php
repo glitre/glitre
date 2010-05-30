@@ -23,6 +23,10 @@ along with Glitre.  If not, see <http://www.gnu.org/licenses/>.
 
 require('File/MARCXML.php');
 
+/***************************************************************** 
+STEP ONE - Get the records and make sure they are standard MARCXML 
+******************************************************************/
+
 function glitre_search($q) {
 	
 	global $config;
@@ -32,29 +36,13 @@ function glitre_search($q) {
 	if (!empty($config['lib']['sru'])) {
 		// SRU
 		$query = urlencode($q);
+		$marcxml = get_sru($query);
 	} else {
 		// Z39.50
 		$query = "any=$q";
-	}
-	return podesearch($query);
-}
-
-/*
-Tar i mot det ferdige søkeuttrykket og bestemmer om det skal økes med SRU 
-eller Z39.50, basert på info fra config.php. 
-*/
-function podesearch($query, $postvisning=false){
-	
-	global $config;
-
-	$marcxml = '';
-	if (!empty($config['lib']['sru'])) {
-		$marcxml = get_sru($query);
-	} else { 
 		$marcxml = get_z($query);
 	}
 	return get_poster($marcxml, $config['max_records'], $postvisning);
-	
 }
 
 /*
