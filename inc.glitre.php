@@ -659,31 +659,6 @@ function masser_input($s) {
 }
 
 /*
-Teksten som kommer fra LastFM fører av en eller annen grunn ut i intet. 
-Denne funksjonen fjerner foreløpig lenkene, etter hvert vil den endre dem så de peker til 
-rett sted. 
-*/
-function lastfm_lenker($s) {
-
-	$s = preg_replace("/<a .*?>(.*?)<\/a>/i", "$1", $s);
-	return $s;
-	
-}
-
-/*
-Last.fm foretrkker Susanne Lundeng fremfor Lundeng, Susanne
-*/
-function avinverter($s) {
-	// Sjekk om strengen inneholder noe komma
-	if (substr_count($s, ',', 2) > 0) {
-		list($first, $last) = split(', ', $s);
-		return "$last $first";
-	} else {
-		return $s;
-	}
-}
-
-/*
 Av en eller annen grunn gir dette: 
 $post->getField("zzz")->getSubfield("a")
 alltid dette: 
