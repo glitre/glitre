@@ -56,7 +56,12 @@ if (!empty($_GET['q'])) {
 
 // Display one record	
 if (!empty($_GET['id'])) {
-	echo(glitre_record($_GET['id']));
+  $args = array(
+    'id' => $_GET['id'], 
+    'library' => 'deich', 
+    'format' => 'plugin.simple'
+  );
+  echo(glitre_search($args));
 }
 
 echo("</body>\n</html>");
