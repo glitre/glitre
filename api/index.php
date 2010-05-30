@@ -1,8 +1,6 @@
 <?php
 
-include('../inc.config.php');
 include('../inc.glitre.php');
-$config = get_config('hig');
 
 // Search
 if (!empty($_GET['q'])) {
