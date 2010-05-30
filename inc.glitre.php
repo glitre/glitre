@@ -21,18 +21,20 @@ along with Glitre.  If not, see <http://www.gnu.org/licenses/>.
 
 */
 
-require('File/MARCXML.php');
+$config = array();
 
 /***************************************************************** 
 STEP ONE - Get the records and make sure they are standard MARCXML 
 ******************************************************************/
 
-function glitre_search($q) {
+function glitre_search($args) {
 	
 	global $config;
+
+	include('inc.config.php');
+	$config = get_config($args['library']);
 	
-	$q = masser_input($q);
-	$query = '';
+	$q = masser_input($args['q']);
 	if (!empty($config['lib']['sru'])) {
 		// SRU
 		$query = urlencode($q);
@@ -258,6 +260,8 @@ function get_poster ($marcxml, $limit, $postvisning) {
 	if ($config['debug']) {
 		$out .= "\n\n <!-- \n\n $marcxml \n\n --> \n\n ";
 	}
+
+	require('File/MARCXML.php');
 	
 	// Hent ut MARC-postene fra strengen i $marcxml
 	$xml_poster = new File_MARCXML($marcxml, File_MARC::SOURCE_STRING);
