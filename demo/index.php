@@ -49,7 +49,9 @@ if (!empty($_GET['q'])) {
   $args = array(
     'q' => $_GET['q'], 
     'library' => 'deich', 
-    'format' => 'plugin.simple'
+    'format' => 'plugin.simple', 
+    'page' => $_GET['side'],
+    'per_page' => 4
   );
   echo(glitre_search($args));
 }
