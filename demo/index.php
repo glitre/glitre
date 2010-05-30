@@ -21,8 +21,8 @@ along with Glitre.  If not, see <http://www.gnu.org/licenses/>.
 
 */
 
-include('inc.config.php');
-include('inc.glitre.php');
+include('../inc.config.php');
+include('../inc.glitre.php');
 $config = get_config('hig');
 
 header('Content-Type: text/html; charset=utf-8');
