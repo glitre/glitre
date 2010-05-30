@@ -21,7 +21,7 @@ along with Glitre.  If not, see <http://www.gnu.org/licenses/>.
 
 */
 
-include('../inc.glitre.php');
+include('../inc.glitre.php'); 
 
 header('Content-Type: text/html; charset=utf-8');
 echo('<?xml version="1.0" encoding="utf-8"?>' . "\n\n"); 
