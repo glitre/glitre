@@ -21,9 +21,7 @@ along with Glitre.  If not, see <http://www.gnu.org/licenses/>.
 
 */
 
-include('../inc.config.php');
 include('../inc.glitre.php');
-$config = get_config('hig');
 
 header('Content-Type: text/html; charset=utf-8');
 echo('<?xml version="1.0" encoding="utf-8"?>' . "\n\n"); 
@@ -48,7 +46,12 @@ echo('
 
 // Search
 if (!empty($_GET['q'])) {
-	echo(glitre_search($_GET['q']));
+  $args = array(
+    'q' => $_GET['q'], 
+    'library' => 'deich', 
+    'format' => 'plugin.simple'
+  );
+  echo(glitre_search($args));
 }
 
 // Display one record	
