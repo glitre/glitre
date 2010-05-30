@@ -1,7 +1,7 @@
 <?php
 
-include('inc.config.php');
-include('inc.glitre.php');
+include('../inc.config.php');
+include('../inc.glitre.php');
 $config = get_config('hig');
 
 // Search
