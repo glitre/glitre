@@ -33,15 +33,16 @@ function glitre_search($args) {
 
 	include('inc.config.php');
 	$config = get_config($args['library']);
+
+	$marcxml = '';
 	
-	$q = masser_input($args['q']);
 	if (!empty($config['lib']['sru'])) {
 		// SRU
-		$query = urlencode($q);
+		$query = $args['q'] ? urlencode(masser_input($args['q'])) : 'rec.id=' . urlencode($args['id']);
 		$marcxml = get_sru($query);
 	} else {
 		// Z39.50
-		$query = "any=$q";
+		$query = $args['q'] ? "any=" . masser_input($args['q']) : 'tnr=' . urlencode($args['id']);
 		$marcxml = get_z($query);
 	}
 	return get_poster($marcxml, $config['max_records'], $postvisning);
@@ -394,39 +395,6 @@ function sorter_artist_synkende($a, $b) {
 
 function sorter_artist_stigende($a, $b) {
     return strcmp($a["artist"], $b["artist"]);
-}
-
-function glitre_record($id) {
-
-	global $config;
-	
-	$marcxml = '';
-	if (!empty($config['lib']['sru'])) {
-		$marcxml = get_sru('rec.id=' . urlencode($id), 1);
-	} else {
-		$marcxml = get_z('tnr=' . urlencode($id), 1);
-	}
-	
-	if ($config['debug']) {
-		echo("\n\n <!-- \n\n $marcxml \n\n --> \n\n ");
-	}
-	
-	// Variabel som skal samle opp output
-	$out = "";
-	
-	// Hent ut MARC-postene fra strengen i $marcxml
-	$poster = new File_MARCXML($marcxml, File_MARC::SOURCE_STRING);
-
-	// Gå igjennom postene
-	while ($post = $poster->next()) {
-		$out .= '<p class="tilbake"><a href="javascript:history.go(-1)">Tilbake til trefflista</a></p>';
-		$data = get_basisinfo($post, true);
-		$out .= $data['post'];
-		$out .= get_detaljer($post);
-	}
-	
-	return $out;
-	
 }
 
 /*
