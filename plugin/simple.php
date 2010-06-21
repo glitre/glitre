@@ -145,11 +145,11 @@ function get_detail($record) {
 	$subjects = $record->getFields('6\d\d', true);
 	if ($subjects) {
 		$out .= '<p>Emner:</p>' . "\n";
-		$out .= '<ul>' . "\n";
+		$out .= '<p>' . "\n";
 		foreach ($subjects as $subject) {
-	   		$out .= '<li>' . marctrim($subject->getSubfield("a")) . '</li>' . "\n";
+	   		$out .= '' . marctrim($subject->getSubfield("a")) . '; ' . "\n";
 	    }
-	    $out .= '</ul>' . "\n";
+	    $out .= '</p>' . "\n";
 	}
 
 	// Items
