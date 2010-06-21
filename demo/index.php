@@ -37,8 +37,8 @@ echo('
 <p>
 <input type="text" name="q" value="' . $_GET['q'] . '" />
 <input type="hidden" name="lib" value="hig" />
-<input type="hidden" name="sorter" value="aar" />
-<input type="hidden" name="orden" value="synk" />
+<!-- input type="hidden" name="sorter" value="aar" / -->
+<!-- input type="hidden" name="orden" value="synk" / -->
 <input type="submit" value="Search" />
 </p>
 </form>
