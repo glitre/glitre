@@ -50,7 +50,7 @@ if (!empty($_GET['q'])) {
     'q' => $_GET['q'], 
     'library' => 'deich', 
     'format' => 'plugin.simple', 
-    'page' => $_GET['side'],
+    'page' => $_GET['side'] ? $_GET['side'] : 1,
     'per_page' => 4
   );
   echo(glitre_search($args));

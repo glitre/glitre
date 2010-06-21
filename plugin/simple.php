@@ -28,9 +28,22 @@ function format($marcxml) {
 
 	$out = '';
 	
+	while ($record = $records->next()) {
+		$data = get_basisinfo($record, false);
+		$out .= $data['post'];
+	}
+	
+	/*
+	
 	// Get the number of records
-	$count = count($records);
-echo($count);	
+	// TODO: There must be a better way to do this? 
+	$count = 0;
+	while ($record = $records->next()) {
+		$count++;
+	}
+	
+	echo($count);
+	
 	if ($count == 1) {
 	
 		$record = $records->next();
@@ -46,6 +59,8 @@ echo($count);
 		}
 	  
 	}
+	
+	*/
 	
 	return $out;
 
@@ -225,7 +240,7 @@ function get_detaljer($post) {
 	
 	if ($post->getField("996") && $post->getField("996")->getSubfield("u")) {
 		$url = marctrim($post->getField("996")->getSubfield("u"));
-		$out .= '<p><a href="'. $url . '">Vis posten i BIBSYS Ask</a></p>' . "\n";
+		$out .= '<p><a href="'. $url . '">OPAC</a></p>' . "\n";
 	}
 	
 	// MEDVIRKENDE
