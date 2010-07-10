@@ -2,6 +2,26 @@
 
 include('../inc.glitre.php');
 
+// Dummy data
+if (!empty($_GET['dummy'])) {
+
+  if (!empty($_GET['q'])) {
+    echo('
+    <ul class="rounded">
+    <li><a class="flip" href="#dummyresult1">Treff 1 for ' . $_GET['q'] . '</a></li>
+    <li><a class="flip" href="#dummyresult2">Treff 2</a></li>
+    <li><a class="flip" href="#dummyresult3">Treff 3</a></li>
+    </ul>
+    ');
+    exit;
+  }
+
+  if (!empty($_GET['id'])) {
+    echo(glitre_search($args));
+  }
+
+}
+
 // Search
 if (!empty($_GET['q'])) {
   $args = array(
