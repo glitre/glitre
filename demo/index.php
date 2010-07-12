@@ -36,9 +36,9 @@ echo('
 <form method="get" action="">
 <p>
 <input type="text" name="q" value="' . $_GET['q'] . '" />
-<input type="hidden" name="lib" value="hig" />
-<input type="hidden" name="sorter" value="aar" />
-<input type="hidden" name="orden" value="synk" />
+<input type="hidden" name="library" value="hig" />
+<!-- input type="hidden" name="sorter" value="aar" / -->
+<!-- input type="hidden" name="orden" value="synk" / -->
 <input type="submit" value="Search" />
 </p>
 </form>
@@ -48,9 +48,9 @@ echo('
 if (!empty($_GET['q'])) {
   $args = array(
     'q' => $_GET['q'], 
-    'library' => 'deich', 
+    'library' => $_GET['library'],
     'format' => 'plugin.simple', 
-    'page' => $_GET['side'],
+    'page' => $_GET['side'] ? $_GET['side'] : 1,
     'per_page' => 4
   );
   echo(glitre_search($args));
@@ -60,7 +60,7 @@ if (!empty($_GET['q'])) {
 if (!empty($_GET['id'])) {
   $args = array(
     'id' => $_GET['id'], 
-    'library' => 'deich', 
+    'library' => $_GET['library'],
     'format' => 'plugin.simple'
   );
   echo(glitre_search($args));

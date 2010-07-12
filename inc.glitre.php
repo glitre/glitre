@@ -45,7 +45,7 @@ function glitre_search($args) {
 		$query = $args['q'] ? "any=" . masser_input($args['q']) : 'tnr=' . urlencode($args['id']);
 		$marcxml = get_z($query);
 	}
-
+	
 	// Format the records
 	return glitre_format($marcxml, $args['format']);
 }

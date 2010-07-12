@@ -25,153 +25,89 @@ function format($marcxml) {
 
 	require('File/MARCXML.php');
 	$records = new File_MARCXML($marcxml, File_MARC::SOURCE_STRING);
-
-	$out = '';
 	
-	// Get the number of records
-	$count = count($records);
-echo($count);	
+	$count = 0;
+	$record = '';
+	$out = '<ul>';
+	while ($rec = $records->next()) {
+		$record = $rec;
+		$data = get_basic_info($rec, false);
+		$out .= '<li>' . $data['post'] . '</li>';
+		$count++;
+	}
+	$out .= '</ul>';
+	
+	// If there was just one record we throw away what we just did and create a detailed view
+	// TODO: There is probably a more elegant way to do this...
 	if ($count == 1) {
-	
-		$record = $records->next();
-		$data = get_basisinfo($record, true);
-		$out .= $data['post'];
-		$out .= get_detaljer($record);	  
-	  
-	} else {
-	
-		while ($record = $records->next()) {
-			$data = get_basisinfo($record, false);
-			$out .= $data['post'];
-		}
-	  
+		$out = get_detail($record);
 	}
 	
 	return $out;
 
 }
 
-/*
-Henter ut grunnleggende informasjon som tittel, artist, selskap, år fra en post
-og returnerer dem ferdig formattert. Samtidig bygges det opp et array med tittel, 
-artist og år som brukes ved sortering av postene. 
-*/
-function get_basisinfo($post, $postvisning) {
+function get_basic_info($record) {
 
 	global $config;
 
-	// Hent ut IDen til posten og sett sammen URLen til posten i katalogen
+	// Get the ID and create a link to the record in the OPAC
 	$bibid = '';
-	$itemurl = '';
-	if ($post->getField("999") && $post->getField("999")->getSubfield("c")) {
-		// Hvis 999$c er derfinert har vi SRU-data fra Koha, og kan sette sammen den verdien med item_url-variabelen fra config.php
-		$bibid = marctrim($post->getField("999")->getSubfield("c"));
-		$itemurl = $config['lib']['item_url'] . $bibid;
+	if ($record->getField("999") && $record->getField("999")->getSubfield("c")) {
+		// Koha
+		$bibid = marctrim($record->getField("999")->getSubfield("c"));
 	} else {
-		// Alternativt finner vi en fiks ferdig URL i 996$u
-		$bibid = substr(marctrim($post->getField("001")), 3);
-		$itemurl = marctrim($post->getField("996")->getSubfield("u"));
+		// Others
+		$bibid = substr(marctrim($record->getField("001")), 3);
 	}
 
-	// BYGG OPP ENKEL POSTVISNING
-
-    $out = '<div class="basisinfo">';
+    $out = '';
     
-    // Tittel
-    if ($post->getField("245") && $post->getField("245")->getSubfield("a")) {
-    	// Fjern eventuelle punktum på slutten av tittelen
-    	$tittel = preg_replace("/\.$/", "", marctrim($post->getField("245")->getSubfield("a")));
-
-		if ($postvisning) {
-			// Vi lenker ikke til posten når vi er inne på den
-			$out .= '<span class="albumtittel">' . $tittel . '</span>';
-
-		} else {
-			$out .= '<a href="?lib=' . $_GET['lib'] . '&id=' . $bibid . '" title="Vis detaljer" class="albumtittel">' . $tittel . '</a>' . "\n";
-		}
-
+    // Title
+    if ($record->getField("245") && $record->getField("245")->getSubfield("a")) {
+    	// Remove . at the end of a title
+    	$title = preg_replace("/\.$/", "", marctrim($record->getField("245")->getSubfield("a")));
+		$out .= '<a href="?library=' . $_GET['library'] . '&id=' . $bibid . '">' . $title . '</a>' . "\n";
     }
-    if ($post->getField("245") && $post->getField("245")->getSubfield("b")) {
-    	$out .= ' : ' . marctrim($post->getField("245")->getSubfield("b")) . "\n";
+    if ($record->getField("245") && $record->getField("245")->getSubfield("b")) {
+    	$out .= ' : <span class="subtitle">' . marctrim($record->getField("245")->getSubfield("b")) . "</span>\n";
     }
-    if ($post->getField("245") && $post->getField("245")->getSubfield("c")) {
-    	$out .= ' / ' . marctrim($post->getField("245")->getSubfield("c")) . "\n";
+    if ($record->getField("245") && $record->getField("245")->getSubfield("c")) {
+    	$out .= ' / <span class="author">' . marctrim($record->getField("245")->getSubfield("c")) . "</span>\n";
+    }
+    // Publication data
+    if ($record->getField("260")) {
+    	// Year
+    	if ($record->getField("260")->getSubfield("c")) {
+    		$out .= ' (<span class="year">' . marctrim($record->getField("260")->getSubfield("c")) . "</span>)\n";
+    	}
     }
     
-    // Artist
-    $artist = '';
-    $beskrivelse = '';
-    // Sjekk om vi har artisten i 100 eller 110
     /*
-    if ($post->getField("100") && $post->getField("100")->getSubfield("a")) {
-    	$artist = marctrim($post->getField("100")->getSubfield("a"));
-    	if ($post->getField("100")->getSubfield("q")) {
-    		$beskrivelse = marctrim($post->getField("100")->getSubfield("q"));
-    	}
-    }
-    if ($post->getField("110") && $post->getField("110")->getSubfield("a")) {
-    	$artist = marctrim($post->getField("110")->getSubfield("a"));
-    	if ($post->getField("110")->getSubfield("q")) {
-    		$beskrivelse = marctrim($post->getField("110")->getSubfield("q"));
-    	}
-    }
-    if ($artist != '') {
-    	$out .= '<br /><a href="?q=' . urlencode($artist) . '&bib=' . $_GET['lib'] . '" class="artist">' . $artist . '</a>';
-    	if ($beskrivelse != '') {
-    		$out .= " ($beskrivelse)";
-    	}
-    }
-    // Hvis vi ikke fant noe i 100 eller 110 ser v iom vi finner noe i 511
-    if (!$post->getField("100") && !$post->getField("110")) {
-    	if ($post->getField("511") && $post->getField("511")->getSubfield("a")) {
-    		$out .= '<br />';
-    		$out .= marctrim($post->getField("511")->getSubfield("a"));
-    	}
-    }
-    */
-    
-    // Sted, utgiver, år
-    if ($post->getField("260")) {
-    	// if ($post->getField("260")->getSubfield("a")) {
-    	// 	if (marctrim($post->getField("260")->getSubfield("a")) != '[S.l.]') {
-    	// 		$out .= marctrim($post->getField("260")->getSubfield("a")) . ', ';
-    	// 	}
-    	// }
-    	// if ($post->getField("260")->getSubfield("b")) {
-    	// 	$out .= marctrim($post->getField("260")->getSubfield("b")) . ', ';
-    	// }
-    	if ($post->getField("260")->getSubfield("c")) {
-    		$out .= ' ' . marctrim($post->getField("260")->getSubfield("c")) . "\n";
-    	}
-    }
-    // if ($config['vis_kataloglenke']) {
-    // 	$out .= ' [<a href="' . $itemurl . '" title="Vis i katalogen til ' . $config['lib']['title'] . '">Vis i katalogen</a>]';
-    // }
-    $out .= '</div>';
-    
     // HENT UT DATA FOR SORTERING
     
     $data = array();
 
     // Tittel
-   	$data['tittel'] = marctrim($post->getField("245")->getSubfield("a")); 
-    if ($post->getField("245") && $post->getField("245")->getSubfield("b")) {
-    	$data['tittel'] .= " " . marctrim($post->getField("245")->getSubfield("b"));
+   	$data['tittel'] = marctrim($record->getField("245")->getSubfield("a")); 
+    if ($record->getField("245") && $record->getField("245")->getSubfield("b")) {
+    	$data['tittel'] .= " " . marctrim($record->getField("245")->getSubfield("b"));
     }
     
     // Artist
-    if ($post->getField("100") && $post->getField("100")->getSubfield("a")) {
-    	$data['artist'] = marctrim($post->getField("100")->getSubfield("a"));
+    if ($record->getField("100") && $record->getField("100")->getSubfield("a")) {
+    	$data['artist'] = marctrim($record->getField("100")->getSubfield("a"));
     }
-    if ($post->getField("110") && $post->getField("110")->getSubfield("a")) {
-    	$data['artist'] = marctrim($post->getField("110")->getSubfield("a"));
+    if ($record->getField("110") && $record->getField("110")->getSubfield("a")) {
+    	$data['artist'] = marctrim($record->getField("110")->getSubfield("a"));
     }
     
     // År
-   	if ($post->getField("260") && $post->getField("260")->getSubfield("c")) {
-   		preg_match("/\d{4}/", marctrim($post->getField("260")->getSubfield("c")), $match);
+   	if ($record->getField("260") && $record->getField("260")->getSubfield("c")) {
+   		preg_match("/\d{4}/", marctrim($record->getField("260")->getSubfield("c")), $match);
    		$data['aar'] = $match[0];
    	}
+   	*/
    	
    	// Legg til post for visning
     $data['post'] = $out;
@@ -180,80 +116,56 @@ function get_basisinfo($post, $postvisning) {
 	
 }
 
-function get_detaljer($post) {
+function get_detail($record) {
 
-	$out = '<div class="detaljer">';
-	
-	// INNHOLD
-	
-	/*
-	
-	// Hent ut spor-navn fra 740$2, indikator 2 = 2 (analytt)
-	if ($post->getField("740")) {
-		$out .= '<p>Spor:</p>';
-		$out .= '<ul>';
-		$fields740 = $post->getFields("740");
-		foreach ($fields740 as $field740) {
-			// Sjekk om dette er en analytt
-			if ($field740->getIndicator(2) == 2) {
-				$tittel = marctrim($field740->getSubfield("a"));
-				$tittelu = urlencode($tittel);
-	    		$out .= '<li><a href="?q=' . $tittelu . '&bib=' . $_GET['lib'] . '">' . $tittel . '</a></li>' . "\n";
-			}
+	$out = '<div class="recorddetail">';
+
+	// Get the basic info anyway
+    // Title
+    if ($record->getField("245") && $record->getField("245")->getSubfield("a")) {
+    	// Remove . at the end of a title
+    	$title = preg_replace("/\.$/", "", marctrim($record->getField("245")->getSubfield("a")));
+		$out .= '<p class="title">Tittel: ' . $title . "</p>\n";
+    }
+    if ($record->getField("245") && $record->getField("245")->getSubfield("b")) {
+    	$out .= '<p class="subtitle">Undertittel: ' . marctrim($record->getField("245")->getSubfield("b")) . "</p>\n";
+    }
+    if ($record->getField("245") && $record->getField("245")->getSubfield("c")) {
+    	$out .= '<p class="author">Forfatter: ' . marctrim($record->getField("245")->getSubfield("c")) . "</p>\n";
+    }
+    // Publication data
+    if ($record->getField("260")) {
+    	// Year
+    	if ($record->getField("260")->getSubfield("c")) {
+    		$out .= '<p class="year">Publisert: ' . marctrim($record->getField("260")->getSubfield("c")) . "</p>\n";
+    	}
+    }
+
+	// Subjects
+	$subjects = $record->getFields('6\d\d', true);
+	if ($subjects) {
+		$out .= '<p>Emner:</p>' . "\n";
+		$out .= '<p>' . "\n";
+		foreach ($subjects as $subject) {
+	   		$out .= '' . marctrim($subject->getSubfield("a")) . '; ' . "\n";
 	    }
-	    $out .= '</ul>';
-	// Eller hent info fra 505
-	} else {
-		if ($post->getField("505") && $post->getField("505")->getSubfield("a")) {
-    		$out .= '<p>' . marctrim($post->getField("505")->getSubfield("a")) . '</p>' . "\n";
-    	}	
+	    $out .= '</p>' . "\n";
 	}
-	
-	*/
 
 	// Items
-
-	if ($post->getField("850") && $post->getField("850")->getSubfield("a")) {
+	if ($record->getField("850") && $record->getField("850")->getSubfield("a")) {
 		$out .= '<p>Eksemplarer:</p><ul>';
-		foreach ($post->getFields("850") as $item) {
+		foreach ($record->getFields("850") as $item) {
 			$out .= '<li>'. marctrim($item->getSubfield("a")) . ', ' . marctrim($item->getSubfield("c")) . '</li>' . "\n";
 		}
 		$out .= '</ul>';
 	}
 
 	// Link to OPAC
-	
-	if ($post->getField("996") && $post->getField("996")->getSubfield("u")) {
-		$url = marctrim($post->getField("996")->getSubfield("u"));
-		$out .= '<p><a href="'. $url . '">Vis posten i BIBSYS Ask</a></p>' . "\n";
+	if ($record->getField("996") && $record->getField("996")->getSubfield("u")) {
+		$url = marctrim($record->getField("996")->getSubfield("u"));
+		$out .= '<p><a href="'. $url . '">OPAC</a></p>' . "\n";
 	}
-	
-	// MEDVIRKENDE
-	
-	/*
-	
-	if ($post->getField("700") && $post->getField("700")->getSubfield("a")) {
-		$out .= '<p>Medvirkende:</p><ul>';
-		foreach ($post->getFields("700") as $med) {
-			$med = marctrim($med->getSubfield("a"));
-			$out .= '<li><a href="?q=' . urlencode($med) . '&bib=' . $_GET['lib'] . '">' . $med . '</a></li>' . "\n";
-		}
-		$out .= '</ul>';
-	}
-	
-	// EMNER
-	
-	$emner = $post->getFields('6\d\d', true);
-	if ($emner) {
-		$out .= '<p>Emner:</p>' . "\n";
-		$out .= '<ul>' . "\n";
-		foreach ($emner as $emne) {
-	   		$out .= '<li>' . marctrim($emne->getSubfield("a")) . '</li>' . "\n";
-	    }
-	}
-    $out .= '</ul>' . "\n";
-	
-	*/
 	
 	$out .= '</div>' . "\n";
 	
