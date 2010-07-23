@@ -33,6 +33,20 @@ if (!empty($_GET['dummy'])) {
 
 }
 
+// Check that we have all the arguments we need
+if (empty($_GET['library'])) {
+  echo('Missing parameter: library');
+  exit;
+}
+if (empty($_GET['format'])) {
+  echo('Missing parameter: format');
+  exit;
+}
+if (empty($_GET['q']) && empty($_GET['id'])) {
+  echo('Missing parameter: q OR id');
+  exit;
+}
+
 // Search
 if (!empty($_GET['q']) && !empty($_GET['library']) && !empty($_GET['format'])) {
   $args = array(
