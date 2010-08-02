@@ -31,7 +31,7 @@ function get_config($lib) {
 
 	$c['debug'] = true;
 	
-	$c['max_records'] = 11;
+	$c['max_records'] = 20;
 	$c['per_page'] = 4;
 
 	// Library independent settings
@@ -40,33 +40,69 @@ function get_config($lib) {
 	//Libraries
 	$l = array();
 	$l['hig'] = array(
-		'name'  => 'Høgskolen i Gjøvik', 
-		'records_max' => 11, 
+		'name'  => 'Høgskolen i Gjøvik (Z39.50)', 
+		'records_max' => 20, 
 		'records_per_page' => 4, 
 		'system' => 'bibsys',
 		'z3950'  => 'z3950.bibsys.no:2100/HIG'
 	);
+    $l['higsru'] = array(
+		'name'  => 'Høgskolen i Gjøvik (SRU)', 
+		'records_max' => 20, 
+		'records_per_page' => 4, 
+		'system' => 'bibsys',
+		'sru'      => 'http://sru.bibsys.no/services/sru', 
+		'item_url' => '?'
+	);	
 	$l['deich'] = array(
 		'name'  => 'Deichmanske',
-		'records_max' => 11, 
+		'records_max' => 20, 
 		'records_per_page' => 4, 
 		'system' => 'bibliofil',  
 		'z3950'  => 'z3950.deich.folkebibl.no:210/data'
 	);
 	$l['drmfb'] = array(
 		'name'  => 'Drammen folkebibliotek',
-		'records_max' => 11, 
+		'records_max' => 20, 
 		'records_per_page' => 4, 
 		'system' => 'bibliofil',  
 		'z3950'  => 'z3950.drammen.folkebibl.no:2100/data'
 	);
+	$l['stavanger'] = array(
+		'name'    => 'Stavanger folkebibliotek', 
+		'records_max' => 20, 
+		'records_per_page' => 4, 
+		'system'   => 'aleph', 
+		'z3950'    => 'aleph.stavanger.kommune.no:2100/Z3950', 
+	);
+	$l['kristiansund'] = array(
+		'name'    => 'Kristiansund folkebibliotek', 
+		'records_max' => 20, 
+		'records_per_page' => 4, 
+		'system'   => 'mikromarc', 
+		'z3950'    => 'z-kristiansund-fb.bibits.no:2107/xxdefault', 
+	);
+	$l['zpode'] = array(
+		'name'    => 'Pode (Z39.50)', 
+		'records_max' => 20, 
+		'records_per_page' => 4, 
+		'system'   => 'koha', 
+		'z3950'    => 'dev.bibpode.no:9999/biblios', 
+	);
 	$l['pode'] = array(
-		'name'    => 'Pode', 
-		'records_max' => 11, 
+		'name'    => 'Pode (SRU)', 
+		'records_max' => 20, 
 		'records_per_page' => 4, 
 		'system'   => 'koha', 
 		'sru'      => 'http://torfeus.deich.folkebibl.no:9999/biblios', 
 		'item_url' => 'http://dev.bibpode.no/cgi-bin/koha/opac-detail.pl?biblionumber='
+	);
+	$l['sksk'] = array(
+		'name'    => 'Sjøkrigsskolen (Z39.50)', 
+		'records_max' => 20, 
+		'records_per_page' => 4, 
+		'system'   => 'koha', 
+		'z3950'    => 'sksk.bibkat.no:9999/biblios', 
 	);
 	
 	$c['lib'] = $l[$lib];

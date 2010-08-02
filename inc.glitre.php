@@ -104,10 +104,9 @@ function get_z($ccl) {
 		$out .= "<records>\n";
 		/*
 		kjører funksjonen yazCclArray som returnerer en array med
-		MARCXML-data basert på $query. syntaksen er 'normarc'. mot
-		deichmanske kan denne byttes til hvertfall USMARC og MARC21
+		MARCXML-data basert på $query. 
 		*/
-		$fetch = yazCclArray($ccl, 'normarc');
+		$fetch = yazCclArray($ccl);
 		/*
 		henter ut verdien med nøkkelen 'result'. det er her selve
 		dataene ligger lagret. $fetch-arrayen har også en verdi med
@@ -143,11 +142,35 @@ returnerer en array med XML-data, hvert element i arrayen
 inneholder XML-data om en record. funksjonen fungerer omtrent
 på samme måte som yazCclSearch
 */
-function yazCclArray($ccl, $syntax = 'normarc')
+function yazCclArray($ccl)
 {
 	
 	global $config;
 	
+	// Create an array to hold settings for the different systems
+	$zopts = array();
+	$zopts['aleph'] = array(
+	  'syntax' => '', 
+	);
+	$zopts['bibliofil'] = array(
+	  'syntax' => 'normarc', 
+	);
+	$zopts['bibsys'] = array(
+	  'syntax' => '', 
+	);
+	$zopts['koha'] = array(
+	  'syntax' => '', 
+	);
+	$zopts['mikromarc'] = array(
+	  'syntax' => 'normarc', 
+	);
+	$zopts['reindex'] = array(
+	  'syntax' => '', 
+	);
+	$zopts['tidemann'] = array(
+	  'syntax' => '', 
+	);
+		
 	$hits = 0;
 	
 	$type = 'xml';
@@ -158,13 +181,13 @@ function yazCclArray($ccl, $syntax = 'normarc')
 	
 	$id = yaz_connect($config['lib']['z3950'], $yaz_con_opts);
 	yaz_element($id, "F");
-	yaz_syntax($id, $syntax);
+	yaz_syntax($id, $zopts[$config['lib']['system']]['syntax']);
 	yaz_range($id, 1, 1);
 	
 	yaz_ccl_conf($id, get_zconfig());
 	$cclresult = array();
 	if (!yaz_ccl_parse($id, $ccl, $cclresult)) {
-		echo 'Error: '.$cclresult["errorstring"];
+		echo 'Error yaz_ccl_parse: '.$cclresult["errorstring"];
 	} else {
 		// NB! Ser ikke ut som Z39.50 fra Bibliofil støtter "sort"
 		// Se nederst her: http://www.bibsyst.no/produkter/bibliofil/z3950.php
@@ -187,7 +210,8 @@ function yazCclArray($ccl, $syntax = 'normarc')
 
 	$error = yaz_error($id);
 	if (!empty($error))	{
-		echo "<p>Error: $error</p>";
+		$yaz_errno = yaz_errno($id);
+		echo "<p>Error yaz_wait: $error ($yaz_errno)</p>";
 	} else {
 		$hits = yaz_hits($id);
 	}
