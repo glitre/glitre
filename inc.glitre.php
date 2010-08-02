@@ -146,6 +146,7 @@ function yazCclArray($ccl)
 {
 	
 	global $config;
+	$system = $config['lib']['system'];
 	
 	// Create an array to hold settings for the different systems
 	$zopts = array();
@@ -181,7 +182,7 @@ function yazCclArray($ccl)
 	
 	$id = yaz_connect($config['lib']['z3950'], $yaz_con_opts);
 	yaz_element($id, "F");
-	yaz_syntax($id, $zopts[$config['lib']['system']]['syntax']);
+	yaz_syntax($id, $zopts[$system]['syntax']);
 	yaz_range($id, 1, 1);
 	
 	yaz_ccl_conf($id, get_zconfig());
