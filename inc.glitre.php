@@ -190,17 +190,8 @@ function yazCclArray($ccl)
 	if (!yaz_ccl_parse($id, $ccl, $cclresult)) {
 		echo 'Error yaz_ccl_parse: '.$cclresult["errorstring"];
 	} else {
-		// NB! Ser ikke ut som Z39.50 fra Bibliofil støtter "sort"
-		// Se nederst her: http://www.bibsyst.no/produkter/bibliofil/z3950.php
-		// PHP/YAZ-funksjonen yaz-sort ville kunne dratt nytte av dette: 
-		// http://no.php.net/manual/en/function.yaz-sort.php
-		// Sort Flags
-		// a Sort ascending
-		// d Sort descending
-		// i Case insensitive sorting
-		// s Case sensitive sorting
-		// Bib1-attributter man kunne sortert på: 
-		// http://www.bibsyst.no/produkter/bibliofil/z/carl.xml
+		// Norwegian Z39.50 have no or limited support for yaz_sort
+		// See http://wiki.biblab.no/index.php/Z39.50%2C_SRU_og_sortering for details
 		// yaz_sort($id, "1=31 di");
 		$rpn = $cclresult["rpn"];
 		// Debug
