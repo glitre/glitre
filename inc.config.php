@@ -35,6 +35,9 @@ function get_config($lib) {
 	$c['per_page'] = 4;
 
 	// Library independent settings
+	
+	// Path to your installation, remember trailing slash
+	$c['base_path'] = '/home/sites/div.libriotech.no/public/glitre/';
 	$c['smarty_path'] = '/home/lib/Smarty-2.6.26/libs/Smarty.class.php';
 	
 	//Libraries

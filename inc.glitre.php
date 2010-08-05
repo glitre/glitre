@@ -69,7 +69,7 @@ function glitre_format($marcxml, $format){
 	// Try to split $format on .
 	} elseif (list($mode, $type) = explode('.', $format)) {
 		// TODO
-		$file = '/home/sites/div.libriotech.no/public/glitre/plugin/' . $type . '.php';
+		$file = $config['base_path'] . 'plugin/' . $type . '.php';
 		if (file_exists($file)) {
 			include($file);
 			return format($marcxml);
@@ -82,6 +82,8 @@ function glitre_format($marcxml, $format){
 }
 
 function glitre_sort($marcxml, $sort_by = 'year', $sort_order = 'descending') {
+	
+	global $config;
 	
 	// Check that sort_by and sort_order are valid
 	$allowed_sort_by = array('author', 'year', 'title');
@@ -99,7 +101,7 @@ function glitre_sort($marcxml, $sort_by = 'year', $sort_order = 'descending') {
 	
 	// Create a dom and load the XSLT
 	$xsl = new DOMDocument;
-	$xsl->load('/home/sites/div.libriotech.no/public/glitre/xslt/simplesort.xslt', LIBXML_NOCDATA);
+	$xsl->load($config['base_path'] . 'xslt/simplesort.xslt', LIBXML_NOCDATA);
 		
 	// Configure the XSLT processor
 	$proc = new XSLTProcessor;
