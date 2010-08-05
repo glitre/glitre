@@ -45,6 +45,9 @@ function glitre_search($args) {
 		$query = $args['q'] ? "any=" . masser_input($args['q']) : 'tnr=' . urlencode($args['id']);
 		$marcxml = get_z($query);
 	}
+
+	// Sort the records
+	$marcxml = glitre_sort($marcxml, $args['sort_by'], $args['sort_order']);
 	
 	// Format the records
 	return glitre_format($marcxml, $args['format']);
@@ -76,6 +79,42 @@ function glitre_format($marcxml, $format){
 		}
 	}
 
+}
+
+function glitre_sort($marcxml, $sort_by = 'year', $sort_order = 'descending') {
+	
+	// Check that sort_by and sort_order are valid
+	$allowed_sort_by = array('author', 'year', 'title');
+	if (!in_array($sort_by, $allowed_sort_by)) {
+		exit("Invalid sort_by: $sort_by");	
+	}
+	$allowed_sort_order = array('descending', 'ascending');
+	if (!in_array($sort_order, $allowed_sort_order)) {
+		exit("Invalid sort_order: $sort_order");	
+	}
+
+	// Create a DOM and load the data
+	$xml = new DOMDocument;
+	$xml->loadXML($marcxml);
+	
+	// Create a dom and load the XSLT
+	$xsl = new DOMDocument;
+	$xsl->load('/home/sites/div.libriotech.no/public/glitre/xslt/simplesort.xslt', LIBXML_NOCDATA);
+		
+	// Configure the XSLT processor
+	$proc = new XSLTProcessor;
+	// Parameters
+	$proc->setParameter('', 'sortBy', $sort_by);
+	$proc->setParameter('', 'sortOrder', $sort_order);
+	// Add the XSLT DOM to the processor
+	$proc->importStyleSheet($xsl);
+	
+	// Do the transformation
+	$dom = $proc->transformToDoc($xml);
+	
+	// Return the XML 
+	return $dom->saveXML();
+	
 }
 
 /*

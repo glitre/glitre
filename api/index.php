@@ -38,23 +38,21 @@ if (empty($_GET['library'])) {
   echo('Missing parameter: library');
   exit;
 }
-if (empty($_GET['format'])) {
-  echo('Missing parameter: format');
-  exit;
-}
 if (empty($_GET['q']) && empty($_GET['id'])) {
   echo('Missing parameter: q OR id');
   exit;
 }
 
 // Search
-if (!empty($_GET['q']) && !empty($_GET['library']) && !empty($_GET['format'])) {
+if (!empty($_GET['q']) && !empty($_GET['library'])) {
   $args = array(
     'q' => $_GET['q'], 
-    'library' => $_GET['library'], 
-    'format' => $_GET['format'], 
-    'page' => $_GET['page'] ? $_GET['page'] : 1,
-    'per_page' => $_GET['per_page'] ? $_GET['per_page'] : 10
+    'library'    => $_GET['library'], 
+    'format'     => $_GET['format']     ? $_GET['format']     : 'plugin.simple',
+    'page'       => $_GET['page']       ? $_GET['page']       : 1,
+    'per_page'   => $_GET['per_page']   ? $_GET['per_page']   : 10,
+    'sort_by'    => $_GET['sort_by']    ? $_GET['sort_by']    : 'year',
+    'sort_order' => $_GET['sort_order'] ? $_GET['sort_order'] : 'descending'
   );
   echo(glitre_search($args));
 }
