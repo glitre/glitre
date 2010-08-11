@@ -21,18 +21,12 @@ along with Glitre.  If not, see <http://www.gnu.org/licenses/>.
 
 */
 
-function format($marcxml) {
+function format($records) {
 
-	require('File/MARCXML.php');
-	$records = new File_MARCXML($marcxml, File_MARC::SOURCE_STRING);
-	
 	$count = 0;
-	$record = '';
 	$out = '<ul>';
-	while ($rec = $records->next()) {
-		$record = $rec;
-		$data = get_basic_info($rec, false);
-		$out .= '<li>' . $data['post'] . '</li>';
+	foreach ($records as $rec) {
+		$out .= '<li>' . get_basic_info($rec['marcobj']) . '</li>';
 		$count++;
 	}
 	$out .= '</ul>';
@@ -50,7 +44,7 @@ function format($marcxml) {
 function get_basic_info($record) {
 
 	global $config;
-
+	
 	// Get the ID and create a link to the record in the OPAC
 	$bibid = '';
 	if ($record->getField("999") && $record->getField("999")->getSubfield("c")) {
@@ -82,37 +76,8 @@ function get_basic_info($record) {
     		$out .= ' (<span class="year">' . marctrim($record->getField("260")->getSubfield("c")) . "</span>)\n";
     	}
     }
-    
-    /*
-    // HENT UT DATA FOR SORTERING
-    
-    $data = array();
 
-    // Tittel
-   	$data['tittel'] = marctrim($record->getField("245")->getSubfield("a")); 
-    if ($record->getField("245") && $record->getField("245")->getSubfield("b")) {
-    	$data['tittel'] .= " " . marctrim($record->getField("245")->getSubfield("b"));
-    }
-    
-    // Artist
-    if ($record->getField("100") && $record->getField("100")->getSubfield("a")) {
-    	$data['artist'] = marctrim($record->getField("100")->getSubfield("a"));
-    }
-    if ($record->getField("110") && $record->getField("110")->getSubfield("a")) {
-    	$data['artist'] = marctrim($record->getField("110")->getSubfield("a"));
-    }
-    
-    // År
-   	if ($record->getField("260") && $record->getField("260")->getSubfield("c")) {
-   		preg_match("/\d{4}/", marctrim($record->getField("260")->getSubfield("c")), $match);
-   		$data['aar'] = $match[0];
-   	}
-   	*/
-   	
-   	// Legg til post for visning
-    $data['post'] = $out;
-
-    return $data;
+    return $out;
 	
 }
 

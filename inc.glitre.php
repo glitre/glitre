@@ -38,50 +38,154 @@ function glitre_search($args) {
 	$marcxml = '';
 	if (!empty($config['lib']['sru'])) {
 		// SRU
-		$query = $args['q'] ? urlencode(masser_input($args['q'])) : 'rec.id=' . urlencode($args['id']);
+		$query = $args['q'] ? urlencode(massage_input($args['q'])) : 'rec.id=' . urlencode($args['id']);
 		$marcxml = get_sru($query);
 	} else {
 		// Z39.50
-		$query = $args['q'] ? "any=" . masser_input($args['q']) : 'tnr=' . urlencode($args['id']);
+		$query = $args['q'] ? "any=" . massage_input($args['q']) : 'tnr=' . urlencode($args['id']);
 		$marcxml = get_z($query);
 	}
 
 	// Sort the records
-	$marcxml = glitre_sort($marcxml, $args['sort_by'], $args['sort_order']);
+	$records = glitre_sort($marcxml, $args['sort_by'], $args['sort_order']);
+	
+	// Pick out the ones we actually want
+	
 	
 	// Format the records
-	return glitre_format($marcxml, $args['format']);
+	return glitre_format($records, $args['format']);
 }
 
 /***************************************
-STEP TWO - Format the records as desired 
+STEP TWO - Sort the records as desired 
+
+Arguments 
+$marcxml: a string containing records in MARCXML
+$sort_by: what criteria to sort on
+$sort_order: ascending or descending sort
+
+Returns 
+Sorted records, in the form of an array of arrays
+
+record1
+	title
+	author
+	year
+	marcobj
+
 ****************************************/
 
-function glitre_format($marcxml, $format){
-
-	global $config;
-
-	//Decide what to do based on $format
-	if ($format == 'raw') {
-		return $marcxml;
-	} elseif ($format == 'json') {
-		
-	// Try to split $format on .
-	} elseif (list($mode, $type) = explode('.', $format)) {
-		// TODO
-		$file = $config['base_path'] . 'plugin/' . $type . '.php';
-		if (file_exists($file)) {
-			include($file);
-			return format($marcxml);
-		} else {
-			// TODO: Log false use of format
-			return "$file not found!";
-		}
+function glitre_sort($marcxml, $sort_by = 'year', $sort_order = 'descending') {
+	
+	// Check that sort_by and sort_order are valid
+	$allowed_sort_by = array('author', 'year', 'title');
+	if (!in_array($sort_by, $allowed_sort_by)) {
+		exit("Invalid sort_by: $sort_by");	
 	}
-
+	$allowed_sort_order = array('descending', 'ascending');
+	if (!in_array($sort_order, $allowed_sort_order)) {
+		exit("Invalid sort_order: $sort_order");	
+	}
+	
+	// Parse the records
+	require('File/MARCXML.php');
+	$rawrecords = new File_MARCXML($marcxml, File_MARC::SOURCE_STRING);
+	
+	$count = 0;
+	$records = array();
+	while ($rawrec = $rawrecords->next()) {
+		$records[] = get_sortable_record($rawrec);
+		$count++;
+	}
+	
+	// Do the actual sorting
+	if       ($sort_by == 'year'   && $sort_order == 'descending') {
+		usort($records, "sort_year_descending");
+	} elseif ($sort_by == 'year'   && $sort_order == 'ascending')  {
+		usort($records, "sort_year_ascending");
+	} elseif ($sort_by == 'title'  && $sort_order == 'descending') {
+		usort($records, "sort_title_descending");
+	} elseif ($sort_by == 'title'  && $sort_order == 'ascending')  {
+		usort($records, "sort_title_ascending");
+	} elseif ($sort_by == 'author' && $sort_order == 'descending') {
+		usort($records, "sort_author_descending");
+	} elseif ($sort_by == 'author' && $sort_order == 'ascending')  {
+		usort($records, "sort_author_ascending");
+	} 	
+	
+	return $records;
+	
 }
 
-function glitre_sort($marcxml, $sort_by = 'year', $sort_order = 'descending') {
+function sort_year_descending($a, $b) {
+    return strcmp($b['year'], $a['year']);
+}
+
+function sort_year_ascending($a, $b) {
+    return strcmp($a['year'], $b['year']);
+}
+
+function sort_title_descending($a, $b) {
+    return strcmp($b['title'], $a['title']);
+}
+
+function sort_title_ascending($a, $b) {
+    return strcmp($a['title'], $b['title']);
+}
+
+function sort_author_descending($a, $b) {
+    return strcmp($b['author'], $a['author']);
+}
+
+function sort_author_ascending($a, $b) {
+    return strcmp($a['author'], $b['author']);
+}
+
+function get_sortable_record($rec){
+
+	$outrecord = array();
+
+	// Title
+	if ($rec->getField("245") && $rec->getField("245")->getSubfield("a")) {
+		$outrecord['title'] = marctrim($rec->getField("245")->getSubfield("a"));
+	}
+	if ($rec->getField("245") && $rec->getField("245")->getSubfield("b")) {
+		$outrecord['title'] .= " " . marctrim($rec->getField("245")->getSubfield("b"));
+	}
+	
+	// Author
+	if ($rec->getField("100") && $rec->getField("100")->getSubfield("a")) {
+		// Personal author
+		$outrecord['author'] = marctrim($rec->getField("100")->getSubfield("a"));
+	}
+	if ($rec->getField("110") && $rec->getField("110")->getSubfield("a")) {
+		// Corporate author
+		$outrecord['author'] = marctrim($rec->getField("110")->getSubfield("a"));
+	}
+	
+	// Year
+	if ($rec->getField("260") && $rec->getField("260")->getSubfield("c")) {
+		preg_match("/\d{4}/", marctrim($rec->getField("260")->getSubfield("c")), $match);
+		$outrecord['year'] = $match[0];
+	}
+	
+	// Save the record-as-object for later re-use
+	$outrecord['marcobj'] = $rec;
+	
+	return $outrecord;
+	
+}
+
+/*
+
+Sort using XSLT - not used any more
+Arguments: 
+$marcxml: a string containing records in MARCXML
+$sort_by: what criteria to sort on
+$sort_order: ascending or descending sort
+Applies xslt/simplesort.xslt and returns the result. 
+
+function glitre_xslt_sort($marcxml, $sort_by = 'year', $sort_order = 'descending') {
 	
 	global $config;
 	
@@ -118,6 +222,40 @@ function glitre_sort($marcxml, $sort_by = 'year', $sort_order = 'descending') {
 	return $dom->saveXML();
 	
 }
+
+*/
+
+/*****************************************
+STEP THREE - Format the records as desired 
+******************************************/
+
+function glitre_format($records, $format){
+
+	global $config;
+
+	//Decide what to do based on $format
+	if ($format == 'raw') {
+		return "Format raw currently not supported";
+	} elseif ($format == 'json') {
+		return "Format json currently not supported";
+	// Try to split $format on .
+	} elseif (list($mode, $type) = explode('.', $format)) {
+		// TODO
+		$file = $config['base_path'] . 'plugin/' . $type . '.php';
+		if (file_exists($file)) {
+			include($file);
+			return format($records);
+		} else {
+			// TODO: Log false use of format
+			return "$file not found!";
+		}
+	}
+
+}
+
+/********
+FUNCTIONS
+*********/
 
 /*
 Utfører Z39.50-søket og returnerer postene i MARCXML-format, som en streng
@@ -337,152 +475,7 @@ function get_sru($query) {
 
 }
 
-/*
-Tar i mot MARC-poster i form av en streng med MARCXML. 
-Returnerer ferdig formatert treffliste med navigering. 
-*/
-function get_poster ($marcxml, $limit, $postvisning) {
-	
-	global $config; 
-	
-	$out = '';
-
-	require('File/MARCXML.php');
-	
-	// Hent ut MARC-postene fra strengen i $marcxml
-	$xml_poster = new File_MARCXML($marcxml, File_MARC::SOURCE_STRING);
-	
-	// Gå igjennom postene
-	$antall_poster = 0;
-	$poster = array();
-	while ($post = $xml_poster->next()) {
-		$poster[] = get_basisinfo($post, $postvisning);
-		$antall_poster++;
-	}
-	
-	// Sorter
-	$poster = sorter($poster);
-
-	// Sjekk om $limit er mindre enn det totale antallet poster
-	// Hvis ja: plukk ut de $limit første postene
-	if ($antall_poster > $limit) {
-		$poster = array_slice($poster, 0, $limit);	
-		$out .= '<p class="antall-poster">' . "Viser $limit av $antall_poster treff</p>";
-	
-	// Sjekk om vi skal vise et utsnitt
-	} elseif ($antall_poster > $config['records_per_page']) {
-		
-		// Plukker ut poster som skal vises
-		$side = !empty($_GET['side']) ? $_GET['side'] : 1;
-		$offset = ($side - 1) * $config['records_per_page'];
-		$lengde = $config['records_per_page'];
-		$poster = array_slice($poster, $offset, $lengde);
-		
-		// Lenker for blaing
-		$forste = $offset + 1;
-		$siste = $forste + $config['records_per_page'] - 1;
-		if ($siste > $antall_poster) {
-			$siste = $antall_poster;
-		}
-		$out .= '<p id="blaing" class="antall-poster">' . "Viser treff $forste - $siste av $antall_poster. ";
-		$blaurl = '?q=' . $_GET['q'] . '&lib=' . $_GET['lib'] . '&sorter=' . $_GET['sorter'] . '&orden=' . $_GET['orden'] . '&side=';
-		if ($side > 1) {
-			$forrigeside = $side - 1;
-			$out .= '<a href="' . $blaurl . $forrigeside . '">Vis forrige side</a> ';
-		} else {
-			$out .= 'Vis forrige side ';
-		}
-		// (($page + 1) * $perPage) &gt; $hits + $perPage
-		if ((($side + 1) * $config['records_per_page']) > ($antall_poster + $config['records_per_page'])) {
-			$out .= 'Vis neste side ';
-		} else {
-			$nesteside = $side + 1;
-			$out .= '<a href="' . $blaurl . $nesteside . '">Vis neste side</a> ' . "\n";
-		}
-		$out .= '</p>';
-		
-	} else {
-		
-		$out .= '<p class="antall-poster">' . "Viser $antall_poster av $antall_poster treff</p>" . "\n";
-		
-	}
-
-	// Legg til de sorterte postene i $out
-	foreach ($poster as $post) {
-		$out .= $post['post'];
-	}
-	
-	if ($antall_poster == 0) {
-		$out .= '<p>Beklager, null treff...</p>' . "\n";	
-	}
-	
-	return $out;
-	
-}
-
-/*
-Sorter postene. Dersom ikke både sorter og orden er satt bruker vi default sortering (år, synkende).
-*/
-function sorter($poster) {
-	
-	if ((!empty($_GET['sorter']) && 
-			($_GET['sorter'] == 'aar' || 
-			 $_GET['sorter'] == 'tittel' ||
-			 $_GET['sorter'] == 'artist')
-			 ) && 
-		(!empty($_GET['orden']) && 
-			($_GET['orden'] == 'stig' ||
-			 $_GET['orden'] == 'synk')
-			 )
-		) {
-			
-		if ($_GET['sorter'] == 'aar' && $_GET['orden'] == 'synk') {
-			usort($poster, "sorter_aar_synkende");
-		} elseif ($_GET['sorter'] == 'aar' && $_GET['orden'] == 'stig') {
-			usort($poster, "sorter_aar_stigende");
-		} elseif ($_GET['sorter'] == 'tittel' && $_GET['orden'] == 'synk') {
-			usort($poster, "sorter_tittel_synkende");
-		} elseif ($_GET['sorter'] == 'tittel' && $_GET['orden'] == 'stig') {
-			usort($poster, "sorter_tittel_stigende");
-		} elseif ($_GET['sorter'] == 'artist' && $_GET['orden'] == 'synk') {
-			usort($poster, "sorter_artist_synkende");
-		} elseif ($_GET['sorter'] == 'artist' && $_GET['orden'] == 'stig') {
-			usort($poster, "sorter_artist_stigende");
-		} 
-		
-	} else {
-		usort($poster, "sorter_aar_synkende");
-	}
-	
-	return $poster;
-	
-}
-
-function sorter_aar_synkende($a, $b) {
-    return strcmp($b["aar"], $a["aar"]);
-}
-
-function sorter_aar_stigende($a, $b) {
-    return strcmp($a["aar"], $b["aar"]);
-}
-
-function sorter_tittel_synkende($a, $b) {
-    return strcmp($b["tittel"], $a["tittel"]);
-}
-
-function sorter_tittel_stigende($a, $b) {
-    return strcmp($a["tittel"], $b["tittel"]);
-}
-
-function sorter_artist_synkende($a, $b) {
-    return strcmp($b["artist"], $a["artist"]);
-}
-
-function sorter_artist_stigende($a, $b) {
-    return strcmp($a["artist"], $b["artist"]);
-}
-
-function masser_input($s) {
+function massage_input($s) {
 
 	// Fjern komma fra feks Asbjørnsen, Kristin
 	$s = str_replace(',', '', $s);
