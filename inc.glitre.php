@@ -256,7 +256,9 @@ function yazCclArray($ccl)
 		$rec = yaz_record($id, $p, $type);
 		if (empty($rec)) continue;
 		$data[] = $rec;
-		if ($p == $config['records_max']) {
+		// If a max number of records is set for this library, respect it - otherwise use the default.
+		$records_max = $config['lib']['records_max'] ? $config['lib']['records_max'] : $config['records_max'];
+		if ($p == $records_max) {
 		  break;
 		}
 	}
