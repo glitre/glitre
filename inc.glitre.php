@@ -368,17 +368,17 @@ function get_poster ($marcxml, $limit, $postvisning) {
 		$out .= '<p class="antall-poster">' . "Viser $limit av $antall_poster treff</p>";
 	
 	// Sjekk om vi skal vise et utsnitt
-	} elseif ($antall_poster > $config['per_page']) {
+	} elseif ($antall_poster > $config['records_per_page']) {
 		
 		// Plukker ut poster som skal vises
 		$side = !empty($_GET['side']) ? $_GET['side'] : 1;
-		$offset = ($side - 1) * $config['per_page'];
-		$lengde = $config['per_page'];
+		$offset = ($side - 1) * $config['records_per_page'];
+		$lengde = $config['records_per_page'];
 		$poster = array_slice($poster, $offset, $lengde);
 		
 		// Lenker for blaing
 		$forste = $offset + 1;
-		$siste = $forste + $config['per_page'] - 1;
+		$siste = $forste + $config['records_per_page'] - 1;
 		if ($siste > $antall_poster) {
 			$siste = $antall_poster;
 		}
@@ -391,7 +391,7 @@ function get_poster ($marcxml, $limit, $postvisning) {
 			$out .= 'Vis forrige side ';
 		}
 		// (($page + 1) * $perPage) &gt; $hits + $perPage
-		if ((($side + 1) * $config['per_page']) > ($antall_poster + $config['per_page'])) {
+		if ((($side + 1) * $config['records_per_page']) > ($antall_poster + $config['records_per_page'])) {
 			$out .= 'Vis neste side ';
 		} else {
 			$nesteside = $side + 1;

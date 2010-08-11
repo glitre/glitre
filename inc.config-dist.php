@@ -32,7 +32,7 @@ function get_config($lib) {
 	$c['debug'] = true;
 	
 	$c['records_max'] = 20;
-	$c['per_page'] = 4;
+	$c['records_per_page'] = 4;
 
 	// Library independent settings
 	
