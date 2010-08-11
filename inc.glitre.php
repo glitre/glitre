@@ -22,7 +22,7 @@ along with Glitre.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 $config = array(); 
-
+	
 /***************************************************************** 
 STEP ONE - Get the records and make sure they are standard MARCXML 
 ******************************************************************/
@@ -34,16 +34,38 @@ function glitre_search($args) {
 	include('inc.config.php');
 	$config = get_config($args['library']);
 
-	// Collect the MARCXML in a string
+	// Caching of search results
+	require('Cache/Lite.php');
+	// Set an id for this cache
+	$id = 'search_' . $config['lib'] . '_' . md5(strtolower($args['q']));
+	// Options for the cache
+	$options = array(
+	    'cacheDir' => $config['base_path'] . 'cache/',
+	    'lifeTime' => 3600 * 24
+	);
+	// Create a Cache_Lite object
+	$Cache_Lite = new Cache_Lite($options);
+
 	$marcxml = '';
-	if (!empty($config['lib']['sru'])) {
-		// SRU
-		$query = $args['q'] ? urlencode(massage_input($args['q'])) : 'rec.id=' . urlencode($args['id']);
-		$marcxml = get_sru($query);
+	
+	// Test if there is a valide cache for this id
+	if ($marcxml = $Cache_Lite->get($id)) {
+
 	} else {
-		// Z39.50
-		$query = $args['q'] ? "any=" . massage_input($args['q']) : 'tnr=' . urlencode($args['id']);
-		$marcxml = get_z($query);
+		
+		// Collect the MARCXML in a string
+		if (!empty($config['lib']['sru'])) {
+			// SRU
+			$query = $args['q'] ? urlencode(massage_input($args['q'])) : 'rec.id=' . urlencode($args['id']);
+			$marcxml = get_sru($query);
+		} else {
+			// Z39.50
+			$query = $args['q'] ? "any=" . massage_input($args['q']) : 'tnr=' . urlencode($args['id']);
+			$marcxml = get_z($query);
+		}
+		
+		$Cache_Lite->save($marcxml);
+		
 	}
 
 	// Sort the records

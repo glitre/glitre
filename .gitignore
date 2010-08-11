@@ -1,2 +1,5 @@
 # Ignore the config-file, so it can be changed without affecting git
 inc.config.php
+
+# Ignore the cache
+cache/*
