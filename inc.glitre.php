@@ -256,7 +256,7 @@ function yazCclArray($ccl)
 		$rec = yaz_record($id, $p, $type);
 		if (empty($rec)) continue;
 		$data[] = $rec;
-		if ($p == $config['max_records']) {
+		if ($p == $config['records_max']) {
 		  break;
 		}
 	}
@@ -307,7 +307,7 @@ function get_sru($query) {
 	$version = '1.2';
 	$recordSchema = 'marcxml';
 	$startRecord = 1; 
-	$maximumRecords = $config['max_records'];
+	$maximumRecords = $config['records_max'];
 	
 	// Bygg opp SRU-urlen
 	$sru_url = $config['lib']['sru'];
