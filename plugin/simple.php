@@ -33,9 +33,11 @@ function format($records) {
 	
 	// If there was just one record we throw away what we just did and create a detailed view
 	// TODO: There is probably a more elegant way to do this...
-	if ($count == 1) {
-		$out = get_detail($record);
-	}
+	
+	// Problem: this kicks in for the last record in a result-set
+	// if ($count == 1) {
+	// 	$out = get_detail($record);
+	// }
 	
 	return $out;
 

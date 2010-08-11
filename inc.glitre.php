@@ -50,7 +50,14 @@ function glitre_search($args) {
 	$records = glitre_sort($marcxml, $args['sort_by'], $args['sort_order']);
 	
 	// Pick out the ones we actually want
-	
+	// Note: Counting of pages starts on 0 (zero), so page=2 is actually the 3rd page of results
+	$page = $args['page'] ? $args['page'] : 0;
+	$per_page = $config['lib']['records_per_page'] ? $config['lib']['records_per_page'] : $config['records_per_page'];
+	$page = $page * $per_page;
+	$records = array_slice($records, $page, $per_page);
+	if (count($records) < 1) {
+		exit('Error: invalid result-page');
+	}
 	
 	// Format the records
 	return glitre_format($records, $args['format']);
