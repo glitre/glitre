@@ -37,11 +37,11 @@ function glitre_search($args) {
 	// Caching of search results
 	require('Cache/Lite.php');
 	// Set an id for this cache
-	$id = 'search_' . $config['lib'] . '_' . md5(strtolower($args['q']));
+	$id = 'search_' . $args['library'] . '_' . md5(strtolower($args['q']));
 	// Options for the cache
 	$options = array(
 	    'cacheDir' => $config['base_path'] . 'cache/',
-	    'lifeTime' => 3600 * 24
+	    'lifeTime' => $config['cache_time_basic_search']
 	);
 	// Create a Cache_Lite object
 	$Cache_Lite = new Cache_Lite($options);
