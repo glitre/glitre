@@ -36,9 +36,11 @@ function get_config($lib) {
 	$c['records_per_page'] = 10;
 
 	// Caching
-	// This is the period of time to cache the raw results retrieved from Z39.50/SRU servers
 	// Determining the the right amount of time here will probably need some experimentation
-	$config['cache_time_basic_search'] = 3600 * 24;
+	// Time to cache the raw results retrieved from Z39.50/SRU servers
+	$config['cache_time_search'] = 3600 * 24;
+	// Time to cache the results after they have been sorted
+	$config['cache_time_sorted'] = 3600 * 24;
 	
 	// Path to your installation, remember trailing slash
 	$c['base_path'] = '/path/to/glitre/';

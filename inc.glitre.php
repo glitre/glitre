@@ -36,40 +36,46 @@ function glitre_search($args) {
 
 	// Caching of search results
 	require('Cache/Lite.php');
-	// Set an id for this cache
-	$id = 'search_' . $args['library'] . '_' . md5(strtolower($args['q']));
 	// Options for the cache
 	$options = array(
-	    'cacheDir' => $config['base_path'] . 'cache/',
-	    'lifeTime' => $config['cache_time_basic_search']
+	    'cacheDir' => $config['base_path'] . 'cache/'
 	);
 	// Create a Cache_Lite object
 	$Cache_Lite = new Cache_Lite($options);
 
-	$marcxml = '';
-	
-	// Test if there is a valide cache for this id
-	if ($marcxml = $Cache_Lite->get($id)) {
-
+	// Calculate the cache id for the sorted results
+	$sorted_cache_id = 'sorted_' . $args['sort_by'] . '_' . $args['sort_order'] . '_' . $args['library'] . '_' . md5(strtolower($args['q']));
+	// Check if the results, sorted in the way we want them, are cached
+	$records = array();
+	if ($records = $Cache_Lite->get($sorted_cache_id)) {
+		// We found what we wanted
 	} else {
 		
-		// Collect the MARCXML in a string
-		if (!empty($config['lib']['sru'])) {
-			// SRU
-			$query = $args['q'] ? urlencode(massage_input($args['q'])) : 'rec.id=' . urlencode($args['id']);
-			$marcxml = get_sru($query);
+		// Set an id for the search cache
+		$search_cache_id = 'search_' . $args['library'] . '_' . md5(strtolower($args['q']));	
+		// Check if the raw results are already cached
+		$marcxml = '';
+		if ($marcxml = $Cache_Lite->get($search_cache_id)) {
+			// Found it! 
 		} else {
-			// Z39.50
-			$query = $args['q'] ? "any=" . massage_input($args['q']) : 'tnr=' . urlencode($args['id']);
-			$marcxml = get_z($query);
+			// Collect the MARCXML in a string
+			if (!empty($config['lib']['sru'])) {
+				// SRU
+				$query = $args['q'] ? urlencode(massage_input($args['q'])) : 'rec.id=' . urlencode($args['id']);
+				$marcxml = get_sru($query);
+			} else {
+				// Z39.50
+				$query = $args['q'] ? "any=" . massage_input($args['q']) : 'tnr=' . urlencode($args['id']);
+				$marcxml = get_z($query);
+			}
+			$Cache_Lite->setLifeTime($config['cache_time_search']);
+			$Cache_Lite->save($marcxml, $search_cache_id);
 		}
-		
-		$Cache_Lite->save($marcxml);
-		
+		// Sort the records
+		$records = glitre_sort($marcxml, $args['sort_by'], $args['sort_order']);
+		$Cache_Lite->setLifeTime($config['cache_time_sorted']);
+		$Cache_Lite->save($records, $sorted_cache_id);
 	}
-
-	// Sort the records
-	$records = glitre_sort($marcxml, $args['sort_by'], $args['sort_order']);
 	
 	// Pick out the ones we actually want
 	// Note: Counting of pages starts on 0 (zero), so page=2 is actually the 3rd page of results
