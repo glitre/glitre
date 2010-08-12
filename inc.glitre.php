@@ -43,12 +43,15 @@ function glitre_search($args) {
 	// Create a Cache_Lite object
 	$Cache_Lite = new Cache_Lite($options);
 
+	$cacheresult = 'nocache';
+
 	// Calculate the cache id for the sorted results
 	$sorted_cache_id = 'sorted_' . $args['sort_by'] . '_' . $args['sort_order'] . '_' . $args['library'] . '_' . md5(strtolower($args['q']));
 	// Check if the results, sorted in the way we want them, are cached
 	$records = array();
 	if ($records = $Cache_Lite->get($sorted_cache_id)) {
 		// We found what we wanted
+		$cacheresult = 'sorted';
 	} else {
 		
 		// Set an id for the search cache
@@ -57,6 +60,7 @@ function glitre_search($args) {
 		$marcxml = '';
 		if ($marcxml = $Cache_Lite->get($search_cache_id)) {
 			// Found it! 
+			$cacheresult = 'raw';
 		} else {
 			// Collect the MARCXML in a string
 			if (!empty($config['lib']['sru'])) {
@@ -85,6 +89,16 @@ function glitre_search($args) {
 	$records = array_slice($records, $page, $per_page);
 	if (count($records) < 1) {
 		exit('Error: invalid result-page');
+	}
+
+	// A simple log for evaluating the cache strategy
+	$log = date("Y-m-d H:i") . "\t" . $page . "\t" . $args['library'] . "\t" . $args['q'] . "\t" . $cacheresult . "\n";
+	$fp = fopen('/tmp/glitrecache.log', 'a');
+	if ($fp) {
+		fwrite($fp, $log);
+		fclose($fp);
+	} else {
+		exit('Could not open /tmp/glitrecache.log');	
 	}
 	
 	// Format the records
