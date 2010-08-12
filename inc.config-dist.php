@@ -31,10 +31,14 @@ function get_config($lib) {
 
 	$c['debug'] = true;
 	
-	$c['records_max'] = 20;
-	$c['records_per_page'] = 4;
+	// These are default values, that may be overridden by per-library settings below
+	$c['records_max'] = 100;
+	$c['records_per_page'] = 10;
 
-	// Library independent settings
+	// Caching
+	// This is the period of time to cache the raw results retrieved from Z39.50/SRU servers
+	// Determining the the right amount of time here will probably need some experimentation
+	$config['cache_time_basic_search'] = 3600 * 24;
 	
 	// Path to your installation, remember trailing slash
 	$c['base_path'] = '/path/to/glitre/';
