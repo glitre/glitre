@@ -110,7 +110,16 @@ record1
 
 ****************************************/
 
-function glitre_sort($marcxml, $sort_by = 'year', $sort_order = 'descending') {
+function glitre_sort($marcxml, $sort_by = 'default', $sort_order = 'default') {
+	
+	global $config;
+	
+	if ($sort_by == 'default') {
+		$sort_by = $config['default_sort_by'];
+	}
+	if ($sort_order == 'default') {
+		$sort_order = $config['default_sort_order'];
+	}
 	
 	// Check that sort_by and sort_order are valid
 	$allowed_sort_by = array('author', 'year', 'title');

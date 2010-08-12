@@ -38,10 +38,14 @@ function get_config($lib) {
 	// Caching
 	// Determining the the right amount of time here will probably need some experimentation
 	// Time to cache the raw results retrieved from Z39.50/SRU servers
-	$config['cache_time_search'] = 3600 * 24;
+	$c['cache_time_search'] = 3600 * 24;
 	// Time to cache the results after they have been sorted
-	$config['cache_time_sorted'] = 3600 * 24;
-	
+	$c['cache_time_sorted'] = 3600 * 24;
+
+	// Default sorting
+	$c['default_sort_by'] = 'year';
+	$c['default_sort_order'] = 'descending';
+
 	// Path to your installation, remember trailing slash
 	$c['base_path'] = '/path/to/glitre/';
 	$c['smarty_path'] = '/path/to/Smarty.class.php';
