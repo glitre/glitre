@@ -25,7 +25,7 @@ along with Glitre.  If not, see <http://www.gnu.org/licenses/>.
 // http://php.net/set_include_path
 set_include_path(get_include_path() . PATH_SEPARATOR . '/home/lib/pear/PEAR');
 
-function get_config($lib) {
+function get_config($lib = false) {
 
 	$c = array();
 
@@ -75,7 +75,11 @@ function get_config($lib) {
 		'item_url' => 'http://dev.bibpode.no/cgi-bin/koha/opac-detail.pl?biblionumber='
 	);
 	
-	$c['lib'] = $l[$lib];
+	if ($lib) {
+		$c['lib'] = $l[$lib];
+	} else {
+		$c['libraries'] = $l;	
+	}
 	
 	return $c;
 	
