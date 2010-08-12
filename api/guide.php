@@ -49,6 +49,7 @@ foreach($config['libraries'] as $key => $value) {
 <select name="format">
 <option></option>
 <option>plugin.simple</option>
+<option>plugin.isbn-plain</option>
 </select>
 </td>
 </tr>
