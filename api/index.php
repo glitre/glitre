@@ -58,9 +58,16 @@ if (!empty($_GET['q']) && !empty($_GET['library'])) {
     // Not sure this should be settable from here? (Not implemented, anyway.) 
     // 'per_page'   => $_GET['per_page']   ? $_GET['per_page']   : 10,
     'sort_by'    => $_GET['sort_by']    ? $_GET['sort_by']    : 'year',
-    'sort_order' => $_GET['sort_order'] ? $_GET['sort_order'] : 'descending'
+    'sort_order' => $_GET['sort_order'] ? $_GET['sort_order'] : 'descending', 
+    'content_type' => true, 
   );
-  echo(glitre_search($args));
+  $data = glitre_search($args);
+  if (!empty($data['content_type'])) { 
+	header('Content-type: ' . $data['content_type']);
+  	echo($data['data']);
+  } else {
+  	echo($data);
+  }
 }
 
 // Display one record	
@@ -70,7 +77,9 @@ if (!empty($_GET['id'])) {
     'library' => $_GET['library'], 
     'format' => $_GET['format'], 
   );
-  echo(glitre_search($args));
+  $data = glitre_search($args, TRUE);
+  header('Content-type: ' . $data['content_type']);
+  echo($data['data']);
 }
 
 ?>

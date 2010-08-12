@@ -39,7 +39,11 @@ function format($records) {
 	// 	$out = get_detail($record);
 	// }
 	
-	return $out;
+	$ret = array(
+		'data' => $out, 
+		'content_type' => 'text/html'
+	);	
+	return $ret;
 
 }
 

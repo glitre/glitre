@@ -88,7 +88,7 @@ function glitre_search($args) {
 	}
 	
 	// Format the records
-	return glitre_format($records, $args['format']);
+	return glitre_format($records, $args['format'], $args['content_type']);
 }
 
 /***************************************
@@ -273,7 +273,7 @@ function glitre_xslt_sort($marcxml, $sort_by = 'year', $sort_order = 'descending
 STEP THREE - Format the records as desired 
 ******************************************/
 
-function glitre_format($records, $format){
+function glitre_format($records, $format, $content_type = false){
 
 	global $config;
 
