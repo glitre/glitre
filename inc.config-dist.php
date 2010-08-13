@@ -41,6 +41,9 @@ function get_config($lib = false) {
 	$c['cache_time_search'] = 3600 * 24;
 	// Time to cache the results after they have been sorted
 	$c['cache_time_sorted'] = 3600 * 24;
+	// Cache log - set to false to disable caching
+	// Make sure the file you specify as the log is writable by the web server
+	$c['cache_log_file'] = '/tmp/glitrecache.log';
 
 	// Default sorting
 	$c['default_sort_by'] = 'year';

@@ -92,13 +92,15 @@ function glitre_search($args) {
 	}
 
 	// A simple log for evaluating the cache strategy
-	$log = date("Y-m-d H:i") . "\t" . $page . "\t" . $args['library'] . "\t" . $args['q'] . "\t" . $cacheresult . "\n";
-	$fp = fopen('/tmp/glitrecache.log', 'a');
-	if ($fp) {
-		fwrite($fp, $log);
-		fclose($fp);
-	} else {
-		exit('Could not open /tmp/glitrecache.log');	
+	if ($config['cache_log_file']) {
+		$log = date("Y-m-d H:i") . "\t" . $page . "\t" . $args['library'] . "\t" . $args['q'] . "\t" . $cacheresult . "\n";
+		$fp = fopen('/tmp/glitrecache.log', 'a');
+		if ($fp) {
+			fwrite($fp, $log);
+			fclose($fp);
+		} else {
+			exit('Could not open /tmp/glitrecache.log');	
+		}
 	}
 	
 	// Format the records
