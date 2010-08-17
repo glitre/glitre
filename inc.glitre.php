@@ -32,6 +32,7 @@ function glitre_search($args) {
 	global $config;
 
 	include('inc.config.php');
+	include('File/MARCXML.php');
 	$config = get_config($args['library']);
 
 	// Caching of search results
@@ -45,12 +46,15 @@ function glitre_search($args) {
 
 	$cacheresult = 'nocache';
 
+	// Set default values if these two are empty, otherwise the cache won't work properly
+	$args['sort_by'] = $args['sort_by'] ? $args['sort_by'] : $config['default_sort_by'];
+	$args['sort_order'] = $args['sort_order'] ? $args['sort_order'] : $config['default_sort_order'];
 	// Calculate the cache id for the sorted results
 	$sorted_cache_id = 'sorted_' . $args['sort_by'] . '_' . $args['sort_order'] . '_' . $args['library'] . '_' . md5(strtolower($args['q']));
 	// Check if the results, sorted in the way we want them, are cached
 	$records = array();
-	if ($records = $Cache_Lite->get($sorted_cache_id)) {
-		// We found what we wanted
+	if ($records = unserialize($Cache_Lite->get($sorted_cache_id))) {
+		// We found what we wanted		
 		$cacheresult = 'sorted';
 	} else {
 		
@@ -77,8 +81,14 @@ function glitre_search($args) {
 		}
 		// Sort the records
 		$records = glitre_sort($marcxml, $args['sort_by'], $args['sort_order']);
+		$cacheablerecords = array();
+		foreach ($records as $record) {
+			// Remove the serialized objects
+			$record['marcobj'] = undef;
+			$cacheablerecords[] = $record;
+		}
 		$Cache_Lite->setLifeTime($config['cache_time_sorted']);
-		$Cache_Lite->save($records, $sorted_cache_id);
+		$Cache_Lite->save(serialize($cacheablerecords), $sorted_cache_id);
 	}
 	
 	// Pick out the ones we actually want
@@ -90,7 +100,18 @@ function glitre_search($args) {
 	if (count($records) < 1) {
 		exit('Error: invalid result-page');
 	}
-
+	
+	// Recreate the MARC objects if they are missing (because these records were revived from the cache) 
+	$fullrecords = array();
+	foreach ($records as $record) {
+		if (!defined($record['marcobj'])) {
+			$marc = new File_MARCXML($record['marcxml'], File_MARC::SOURCE_STRING);
+			$record['marcobj'] = $marc->next();
+			$fullrecords[] = $record;
+		}
+	}
+	$records = $fullrecords;
+	
 	// A simple log for evaluating the cache strategy
 	if ($config['cache_log_file']) {
 		$log = date("Y-m-d H:i") . "\t" . $page . "\t" . $args['library'] . "\t" . $args['q'] . "\t" . $cacheresult . "\n";
@@ -148,7 +169,6 @@ function glitre_sort($marcxml, $sort_by = 'default', $sort_order = 'default') {
 	}
 	
 	// Parse the records
-	require('File/MARCXML.php');
 	$rawrecords = new File_MARCXML($marcxml, File_MARC::SOURCE_STRING);
 	
 	$count = 0;
@@ -231,6 +251,8 @@ function get_sortable_record($rec){
 	
 	// Save the record-as-object for later re-use
 	$outrecord['marcobj'] = $rec;
+	// Save the record-as-XML for later serialization and caching
+	$outrecord['marcxml'] = $rec->toXML();
 	
 	return $outrecord;
 	
