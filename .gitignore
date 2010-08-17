@@ -3,3 +3,6 @@ inc.config.php
 
 # Ignore the cache
 cache/*
+
+# The Flot jQuery extension
+visual/flot/*
