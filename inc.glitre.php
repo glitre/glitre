@@ -93,11 +93,20 @@ function glitre_search($args) {
 	
 	// Pick out the ones we actually want
 	// Note: Counting of pages starts on 0 (zero), so page=2 is actually the 3rd page of results
+	// Which page are we showing? 
 	$page = $args['page'] ? $args['page'] : 0;
+	// How many reords should be displayed on a page? 
+	// TODO: Parameters should probably be ablo to set this, but with a configurable default and upper limit
 	$per_page = $config['lib']['records_per_page'] ? $config['lib']['records_per_page'] : $config['records_per_page'];
+	// Get the location of the first record
 	$first_record = $page * $per_page;
+	// Get the total number of records
 	$num_of_records = count($records);
+	// Slice out the records that make up the page we are looking for
 	$records = array_slice($records, $first_record, $per_page);
+	// Calculate the position of the last record
+	$last_record = $first_record + count($records);
+	// Check the number of records after the slice
 	if (count($records) < 1) {
 		exit('Error: invalid result-page');
 	}
@@ -125,8 +134,10 @@ function glitre_search($args) {
 		}
 	}
 	
+	// The position of the first record needs to be bumped up by one
+	$first_record++;
 	// Format the records
-	return glitre_format($records, $args['format'], $num_of_records, $args['content_type']);
+	return glitre_format($records, $args['format'], $num_of_records, $first_record, $last_record, $args['content_type']);
 }
 
 /***************************************
@@ -312,7 +323,7 @@ function glitre_xslt_sort($marcxml, $sort_by = 'year', $sort_order = 'descending
 STEP THREE - Format the records as desired 
 ******************************************/
 
-function glitre_format($records, $format, $num_of_records, $content_type = false){
+function glitre_format($records, $format, $num_of_records, $first_record, $last_record, $content_type = false){
 
 	global $config;
 
@@ -327,7 +338,7 @@ function glitre_format($records, $format, $num_of_records, $content_type = false
 		$file = $config['base_path'] . 'plugin/' . $type . '.php';
 		if (file_exists($file)) {
 			include($file);
-			return format($records, $num_of_records);
+			return format($records, $num_of_records, $first_record, $last_record);
 		} else {
 			// TODO: Log false use of format
 			return "$file not found!";

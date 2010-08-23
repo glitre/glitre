@@ -21,10 +21,10 @@ along with Glitre.  If not, see <http://www.gnu.org/licenses/>.
 
 */
 
-function format($records, $num_of_records) {
+function format($records, $num_of_records, $first_record, $last_record) {
 
 	$count = 0;
-	$out = '<p>' . $num_of_records . ' hits.</p>';
+	$out = '<p>Displaying ' . $first_record . ' to ' . $last_record . ' of ' . $num_of_records . ' hits.</p>';
 	$out .= '<ul>';
 	foreach ($records as $rec) {
 		$out .= '<li>' . get_basic_info($rec['marcobj']) . '</li>';
