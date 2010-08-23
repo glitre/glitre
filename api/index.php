@@ -48,6 +48,8 @@ if (!empty($_GET['page']) && !is_int((int) $_GET['page'])) {
 	$_GET['page'] = 0;
 }
 
+$data = '';
+
 // Search
 if (!empty($_GET['q']) && !empty($_GET['library'])) {
   $args = array(
@@ -62,24 +64,23 @@ if (!empty($_GET['q']) && !empty($_GET['library'])) {
     'content_type' => true, 
   );
   $data = glitre_search($args);
-  if (!empty($data['content_type'])) { 
-	header('Content-type: ' . $data['content_type']);
-  	echo($data['data']);
-  } else {
-  	echo($data);
-  }
-}
 
 // Display one record	
-if (!empty($_GET['id'])) {
+} elseif (!empty($_GET['id'])) {
   $args = array(
-    'id' => $_GET['id'], 
+    'id'      => $_GET['id'], 
     'library' => $_GET['library'], 
-    'format' => $_GET['format'], 
+    'format'  => $_GET['format']     ? $_GET['format']     : 'plugin.simple',
   );
-  $data = glitre_search($args, TRUE);
+  $data = glitre_search($args);
+}
+
+// Do the actual output
+if ($data && !empty($data['content_type'])) { 
   header('Content-type: ' . $data['content_type']);
   echo($data['data']);
+} else {
+  echo($data);
 }
 
 ?>

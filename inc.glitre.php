@@ -45,86 +45,118 @@ function glitre_search($args) {
 	$Cache_Lite = new Cache_Lite($options);
 
 	$cacheresult = 'nocache';
-
-	// Set default values if these two are empty, otherwise the cache won't work properly
-	$args['sort_by'] = $args['sort_by'] ? $args['sort_by'] : $config['default_sort_by'];
-	$args['sort_order'] = $args['sort_order'] ? $args['sort_order'] : $config['default_sort_order'];
-	// Calculate the cache id for the sorted results
-	$sorted_cache_id = 'sorted_' . $args['sort_by'] . '_' . $args['sort_order'] . '_' . $args['library'] . '_' . md5(strtolower($args['q']));
-	// Check if the results, sorted in the way we want them, are cached
 	$records = array();
-	if ($records = unserialize($Cache_Lite->get($sorted_cache_id))) {
-		// We found what we wanted		
-		$cacheresult = 'sorted';
-	} else {
+	
+	if (!empty($args['q'])) {
+
+		// Set default values if these two are empty, otherwise the cache won't work properly
+		$args['sort_by'] = $args['sort_by'] ? $args['sort_by'] : $config['default_sort_by'];
+		$args['sort_order'] = $args['sort_order'] ? $args['sort_order'] : $config['default_sort_order'];
+		// Calculate the cache id for the sorted results
+		$sorted_cache_id = 'sorted_' . $args['sort_by'] . '_' . $args['sort_order'] . '_' . $args['library'] . '_' . md5(strtolower($args['q']));
+		// Check if the results, sorted in the way we want them, are cached
+		if ($records = unserialize($Cache_Lite->get($sorted_cache_id))) {
+			// We found what we wanted		
+			$cacheresult = 'sorted';
+		} else {
+			
+			// Set an id for the search cache
+			$search_cache_id = 'search_' . $args['library'] . '_' . md5(strtolower($args['q']));	
+			// Check if the raw results are already cached
+			$marcxml = '';
+			if ($marcxml = $Cache_Lite->get($search_cache_id)) {
+				// Found it! 
+				$cacheresult = 'raw';
+			} else {
+				// Collect the MARCXML in a string
+				if (!empty($config['lib']['sru'])) {
+					// SRU
+					$query = urlencode(massage_input($args['q']));
+					$marcxml = get_sru($query);
+				} else {
+					// Z39.50
+					$query = "any=" . massage_input($args['q']);
+					$marcxml = get_z($query);
+				}
+				$Cache_Lite->setLifeTime($config['cache_time_search']);
+				$Cache_Lite->save($marcxml, $search_cache_id);
+			}
+			// Sort the records
+			$records = glitre_sort($marcxml, $args['sort_by'], $args['sort_order']);
+			$cacheablerecords = array();
+			foreach ($records as $record) {
+				// Remove the serialized objects
+				$record['marcobj'] = undef;
+				$cacheablerecords[] = $record;
+			}
+			$Cache_Lite->setLifeTime($config['cache_time_sorted']);
+			$Cache_Lite->save(serialize($cacheablerecords), $sorted_cache_id);
+		}
 		
-		// Set an id for the search cache
-		$search_cache_id = 'search_' . $args['library'] . '_' . md5(strtolower($args['q']));	
-		// Check if the raw results are already cached
+		// Pick out the ones we actually want
+		// Note: Counting of pages starts on 0 (zero), so page=2 is actually the 3rd page of results
+		// Which page are we showing? 
+		$page = $args['page'] ? $args['page'] : 0;
+		// How many reords should be displayed on a page? 
+		// TODO: Parameters should probably be ablo to set this, but with a configurable default and upper limit
+		$per_page = $config['lib']['records_per_page'] ? $config['lib']['records_per_page'] : $config['records_per_page'];
+		// Get the location of the first record
+		$first_record = $page * $per_page;
+		// Get the total number of records
+		$num_of_records = count($records);
+		// Slice out the records that make up the page we are looking for
+		$records = array_slice($records, $first_record, $per_page);
+		// Calculate the position of the last record
+		$last_record = $first_record + count($records);
+		// Check the number of records after the slice
+		if (count($records) < 1) {
+			exit('Error: invalid result-page');
+		}
+		
+		// Recreate the MARC objects if they are missing (because these records were revived from the cache) 
+		$fullrecords = array();
+		foreach ($records as $record) {
+			if (!defined($record['marcobj'])) {
+				$marc = new File_MARCXML($record['marcxml'], File_MARC::SOURCE_STRING);
+				$record['marcobj'] = $marc->next();
+				$fullrecords[] = $record;
+			}
+		}
+		$records = $fullrecords;
+
+	} elseif(!empty($args['id'])) {
+		
+		// Set an id for the single-record-by-id cache
+		$record_cache_id = 'record_' . $args['library'] . '_' . md5(strtolower($args['id']));	
+		// Check if the record is already cached
 		$marcxml = '';
-		if ($marcxml = $Cache_Lite->get($search_cache_id)) {
+		if ($marcxml = $Cache_Lite->get($record_cache_id)) {
 			// Found it! 
-			$cacheresult = 'raw';
+			$cacheresult = 'record';
 		} else {
 			// Collect the MARCXML in a string
 			if (!empty($config['lib']['sru'])) {
 				// SRU
-				$query = $args['q'] ? urlencode(massage_input($args['q'])) : 'rec.id=' . urlencode($args['id']);
+				$query = 'rec.id=' . urlencode($args['id']);
 				$marcxml = get_sru($query);
 			} else {
 				// Z39.50
-				$query = $args['q'] ? "any=" . massage_input($args['q']) : 'tnr=' . urlencode($args['id']);
+				$query = 'tnr=' . urlencode($args['id']);
 				$marcxml = get_z($query);
 			}
-			$Cache_Lite->setLifeTime($config['cache_time_search']);
-			$Cache_Lite->save($marcxml, $search_cache_id);
+			$Cache_Lite->setLifeTime($config['cache_time_record']);
+			$Cache_Lite->save($marcxml, $record_cache_id);
 		}
-		// Sort the records
-		$records = glitre_sort($marcxml, $args['sort_by'], $args['sort_order']);
-		$cacheablerecords = array();
-		foreach ($records as $record) {
-			// Remove the serialized objects
-			$record['marcobj'] = undef;
-			$cacheablerecords[] = $record;
-		}
-		$Cache_Lite->setLifeTime($config['cache_time_sorted']);
-		$Cache_Lite->save(serialize($cacheablerecords), $sorted_cache_id);
+		$marc = new File_MARCXML($marcxml, File_MARC::SOURCE_STRING);
+		$record['marcobj'] = $marc->next();
+		$records[] = $record;
+		
 	}
-	
-	// Pick out the ones we actually want
-	// Note: Counting of pages starts on 0 (zero), so page=2 is actually the 3rd page of results
-	// Which page are we showing? 
-	$page = $args['page'] ? $args['page'] : 0;
-	// How many reords should be displayed on a page? 
-	// TODO: Parameters should probably be ablo to set this, but with a configurable default and upper limit
-	$per_page = $config['lib']['records_per_page'] ? $config['lib']['records_per_page'] : $config['records_per_page'];
-	// Get the location of the first record
-	$first_record = $page * $per_page;
-	// Get the total number of records
-	$num_of_records = count($records);
-	// Slice out the records that make up the page we are looking for
-	$records = array_slice($records, $first_record, $per_page);
-	// Calculate the position of the last record
-	$last_record = $first_record + count($records);
-	// Check the number of records after the slice
-	if (count($records) < 1) {
-		exit('Error: invalid result-page');
-	}
-	
-	// Recreate the MARC objects if they are missing (because these records were revived from the cache) 
-	$fullrecords = array();
-	foreach ($records as $record) {
-		if (!defined($record['marcobj'])) {
-			$marc = new File_MARCXML($record['marcxml'], File_MARC::SOURCE_STRING);
-			$record['marcobj'] = $marc->next();
-			$fullrecords[] = $record;
-		}
-	}
-	$records = $fullrecords;
 	
 	// A simple log for evaluating the cache strategy
 	if ($config['cache_log_file']) {
-		$log = date("Y-m-d H:i") . "\t" . $page . "\t" . $args['library'] . "\t" . $args['q'] . "\t" . $cacheresult . "\n";
+		$qid = $args['q'] ? $args['q'] : $args['id'];
+		$log = date("Y-m-d H:i") . "\t" . $page . "\t" . $args['library'] . "\t" . $qid . "\t" . $cacheresult . "\n";
 		$fp = fopen($config['cache_log_file'], 'a');
 		if ($fp) {
 			fwrite($fp, $log);
@@ -327,17 +359,11 @@ function glitre_format($records, $format, $num_of_records, $first_record, $last_
 
 	global $config;
 
-	//Decide what to do based on $format
-	if ($format == 'raw') {
-		return "Format raw currently not supported";
-	} elseif ($format == 'json') {
-		return "Format json currently not supported";
-	// Try to split $format on .
-	} elseif (list($mode, $type) = explode('.', $format)) {
+	if (list($mode, $type) = explode('.', $format)) {
 		// TODO
 		$file = $config['base_path'] . 'plugin/' . $type . '.php';
-		if (file_exists($file)) {
-			include($file);
+		if (is_file($file)) {
+			include($file);			
 			return format($records, $num_of_records, $first_record, $last_record);
 		} else {
 			// TODO: Log false use of format
