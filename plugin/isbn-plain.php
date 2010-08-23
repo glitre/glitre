@@ -21,7 +21,7 @@ along with Glitre.  If not, see <http://www.gnu.org/licenses/>.
 
 */
 
-function format($records) {
+function format($records, $num_of_records) {
 	
 	$out = '';
 

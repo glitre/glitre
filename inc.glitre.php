@@ -96,6 +96,7 @@ function glitre_search($args) {
 	$page = $args['page'] ? $args['page'] : 0;
 	$per_page = $config['lib']['records_per_page'] ? $config['lib']['records_per_page'] : $config['records_per_page'];
 	$first_record = $page * $per_page;
+	$num_of_records = count($records);
 	$records = array_slice($records, $first_record, $per_page);
 	if (count($records) < 1) {
 		exit('Error: invalid result-page');
@@ -125,7 +126,7 @@ function glitre_search($args) {
 	}
 	
 	// Format the records
-	return glitre_format($records, $args['format'], $args['content_type']);
+	return glitre_format($records, $args['format'], $num_of_records, $args['content_type']);
 }
 
 /***************************************
@@ -311,7 +312,7 @@ function glitre_xslt_sort($marcxml, $sort_by = 'year', $sort_order = 'descending
 STEP THREE - Format the records as desired 
 ******************************************/
 
-function glitre_format($records, $format, $content_type = false){
+function glitre_format($records, $format, $num_of_records, $content_type = false){
 
 	global $config;
 
@@ -326,7 +327,7 @@ function glitre_format($records, $format, $content_type = false){
 		$file = $config['base_path'] . 'plugin/' . $type . '.php';
 		if (file_exists($file)) {
 			include($file);
-			return format($records);
+			return format($records, $num_of_records);
 		} else {
 			// TODO: Log false use of format
 			return "$file not found!";
