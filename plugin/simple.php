@@ -23,22 +23,15 @@ along with Glitre.  If not, see <http://www.gnu.org/licenses/>.
 
 function format($records, $num_of_records, $first_record, $last_record) {
 
-	$count = 0;
+// print_r($records); 
+// exit;
+
 	$out = '<p>Displaying ' . $first_record . ' to ' . $last_record . ' of ' . $num_of_records . ' hits.</p>';
 	$out .= '<ul>';
 	foreach ($records as $rec) {
-		$out .= '<li>' . get_basic_info($rec['marcobj']) . '</li>';
-		$count++;
+		$out .= '<li>' . get_basic_info($rec) . '</li>';
 	}
 	$out .= '</ul>';
-	
-	// If there was just one record we throw away what we just did and create a detailed view
-	// TODO: There is probably a more elegant way to do this...
-	
-	// Problem: this kicks in for the last record in a result-set
-	// if ($count == 1) {
-	// 	$out = get_detail($record);
-	// }
 	
 	$ret = array(
 		'data' => $out, 
@@ -48,7 +41,26 @@ function format($records, $num_of_records, $first_record, $last_record) {
 
 }
 
+function format_single($records) {
+	
+	$out = '';
+	foreach ($records as $rec) {
+		$out .= '<h2>' . get_basic_info($rec) . '</h2>';
+		$out .= get_detail($rec);
+	}
+	
+	$ret = array(
+		'data' => $out, 
+		'content_type' => 'text/html'
+	);	
+	return $ret;
+	
+}
+
 function get_basic_info($record) {
+	
+	// print_r($record); 
+	// exit;
 
 	global $config;
 	

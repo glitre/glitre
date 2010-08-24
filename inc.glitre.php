@@ -46,6 +46,7 @@ function glitre_search($args) {
 
 	$cacheresult = 'nocache';
 	$records = array();
+	$single_record = false;
 	
 	if (!empty($args['q'])) {
 
@@ -86,7 +87,7 @@ function glitre_search($args) {
 			$cacheablerecords = array();
 			foreach ($records as $record) {
 				// Remove the serialized objects
-				$record['marcobj'] = undef;
+				unset($record['marcobj']);
 				$cacheablerecords[] = $record;
 			}
 			$Cache_Lite->setLifeTime($config['cache_time_sorted']);
@@ -114,22 +115,25 @@ function glitre_search($args) {
 		}
 		
 		// Recreate the MARC objects if they are missing (because these records were revived from the cache) 
-		$fullrecords = array();
+		$simplerecords = array(); 
 		foreach ($records as $record) {
-			if (!defined($record['marcobj'])) {
+			
+			if (!isset($record['marcobj'])) {
+				// Simplify the records to just an array of objects
 				$marc = new File_MARCXML($record['marcxml'], File_MARC::SOURCE_STRING);
-				$record['marcobj'] = $marc->next();
-				$fullrecords[] = $record;
+				$simplerecords[] = $marc->next();
+			} else {
+				$simplerecords[] = $record['marcobj'];
 			}
 		}
-		$records = $fullrecords;
-
+		$records = $simplerecords;
+				
 	} elseif(!empty($args['id'])) {
 		
 		// Set an id for the single-record-by-id cache
 		$record_cache_id = 'record_' . $args['library'] . '_' . md5(strtolower($args['id']));	
 		// Check if the record is already cached
-		$marcxml = '';
+		$record = '';
 		if ($marcxml = $Cache_Lite->get($record_cache_id)) {
 			// Found it! 
 			$cacheresult = 'record';
@@ -147,9 +151,9 @@ function glitre_search($args) {
 			$Cache_Lite->setLifeTime($config['cache_time_record']);
 			$Cache_Lite->save($marcxml, $record_cache_id);
 		}
-		$marc = new File_MARCXML($marcxml, File_MARC::SOURCE_STRING);
-		$record['marcobj'] = $marc->next();
-		$records[] = $record;
+		$marc = new File_MARCXML($marcxml, File_MARC::SOURCE_STRING);		
+		$records[] = $marc->next();
+		$single_record = true;
 		
 	}
 	
@@ -169,7 +173,7 @@ function glitre_search($args) {
 	// The position of the first record needs to be bumped up by one
 	$first_record++;
 	// Format the records
-	return glitre_format($records, $args['format'], $num_of_records, $first_record, $last_record, $args['content_type']);
+	return glitre_format($records, $args['format'], $single_record, $num_of_records, $first_record, $last_record, $args['content_type']);
 }
 
 /***************************************
@@ -214,12 +218,11 @@ function glitre_sort($marcxml, $sort_by = 'default', $sort_order = 'default') {
 	
 	// Parse the records
 	$rawrecords = new File_MARCXML($marcxml, File_MARC::SOURCE_STRING);
-	
-	$count = 0;
+
+	// Make the records sortable	
 	$records = array();
 	while ($rawrec = $rawrecords->next()) {
 		$records[] = get_sortable_record($rawrec);
-		$count++;
 	}
 	
 	// Do the actual sorting
@@ -236,7 +239,7 @@ function glitre_sort($marcxml, $sort_by = 'default', $sort_order = 'default') {
 	} elseif ($sort_by == 'author' && $sort_order == 'ascending')  {
 		usort($records, "sort_author_ascending");
 	} 	
-	
+
 	return $records;
 	
 }
@@ -355,7 +358,7 @@ function glitre_xslt_sort($marcxml, $sort_by = 'year', $sort_order = 'descending
 STEP THREE - Format the records as desired 
 ******************************************/
 
-function glitre_format($records, $format, $num_of_records, $first_record, $last_record, $content_type = false){
+function glitre_format($records, $format, $single_record, $num_of_records, $first_record, $last_record, $content_type = false){
 
 	global $config;
 
@@ -363,8 +366,12 @@ function glitre_format($records, $format, $num_of_records, $first_record, $last_
 		// TODO
 		$file = $config['base_path'] . 'plugin/' . $type . '.php';
 		if (is_file($file)) {
-			include($file);			
-			return format($records, $num_of_records, $first_record, $last_record);
+			include($file);	
+			if ($single_record) {	
+				return format_single($records);
+			} else {
+				return format($records, $num_of_records, $first_record, $last_record);
+			}
 		} else {
 			// TODO: Log false use of format
 			return "$file not found!";
