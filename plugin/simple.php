@@ -57,6 +57,31 @@ function format_single($records) {
 	
 }
 
+function format_error($err) {
+	
+	$errorcodes = array(
+		'10007' => 'Beklager, bibliotekkatalogen brukte for lang tid på å svare.', 
+	);
+	
+	$out = '';
+	if ($errorcodes[$err['num']]) {
+		$out = $errorcodes[$err['num']];
+	} else {
+		$out = 'Beklager, ukjent feil (' . $err['stage'] . ' ' . $err['num'] . ' ' . $err['desc'] . ')';	
+	}
+	
+	$ret = array(
+		'data' => $out, 
+		'content_type' => 'text/plain'
+	);	
+	
+	print_r($ret);
+	exit;
+	
+	return $ret;
+	
+}
+
 function get_basic_info($record) {
 	
 	// print_r($record); 

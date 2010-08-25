@@ -79,6 +79,9 @@ function glitre_search($args) {
 					$query = "any=" . massage_input($args['q']);
 					$marcxml = get_z($query);
 				}
+				if (is_array($marcxml) && $marcxml['error']) {
+					return glitre_format_error($marcxml, $args['format']);
+				}
 				$Cache_Lite->setLifeTime($config['cache_time_search']);
 				$Cache_Lite->save($marcxml, $search_cache_id);
 			}
@@ -380,6 +383,24 @@ function glitre_format($records, $format, $single_record, $num_of_records, $firs
 
 }
 
+function glitre_format_error($err, $format){
+
+	global $config;
+
+	if (list($mode, $type) = explode('.', $format)) {
+		// TODO
+		$file = $config['base_path'] . 'plugin/' . $type . '.php';
+		if (is_file($file)) {
+			include($file);	
+			return format_error($err);
+		} else {
+			// TODO: Log false use of format
+			return "$file not found!";
+		}
+	}
+
+}
+
 /********
 FUNCTIONS
 *********/
@@ -413,6 +434,11 @@ function get_z($ccl) {
 		MARCXML-data basert på $query. 
 		*/
 		$fetch = yazCclArray($ccl);
+		
+		if ($fetch['error']) {
+			return $fetch;
+		}
+		
 		/*
 		henter ut verdien med nøkkelen 'result'. det er her selve
 		dataene ligger lagret. $fetch-arrayen har også en verdi med
@@ -509,7 +535,14 @@ function yazCclArray($ccl)
 	$error = yaz_error($id);
 	if (!empty($error))	{
 		$yaz_errno = yaz_errno($id);
-		echo "<p>Error yaz_wait: $error ($yaz_errno)</p>";
+		// echo "<p>Error yaz_wait: $error ($yaz_errno)</p>";
+		$error = array(
+		  'error' => true, 
+		  'stage' => 'yaz_wait',
+		  'desc' => $error, 
+		  'num' => $yaz_errno
+		);
+		return $error;
 	} else {
 		$hits = yaz_hits($id);
 	}
