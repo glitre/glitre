@@ -484,35 +484,54 @@ function yazCclArray($ccl)
 	$zopts = array();
 	$zopts['aleph'] = array(
 	  'syntax' => '', 
+	  'yaz_con_opts' => array(
+		'piggyback' => true,
+	  ),
 	);
 	$zopts['bibliofil'] = array(
 	  'syntax' => 'normarc', 
+	  'yaz_con_opts' => array(
+		'piggyback' => true,
+	  ),
 	);
 	$zopts['bibsys'] = array(
 	  'syntax' => '', 
+	  'yaz_con_opts' => array(
+		'piggyback' => false,
+	  ),
 	);
 	$zopts['koha'] = array(
 	  'syntax' => '', 
+	  'yaz_con_opts' => array(
+		'piggyback' => true,
+	  ),
 	);
 	$zopts['mikromarc'] = array(
 	  'syntax' => 'normarc', 
+	  'yaz_con_opts' => array(
+		'piggyback' => true,
+	  ),
 	);
+	/*
 	$zopts['reindex'] = array(
 	  'syntax' => '', 
+	  'yaz_con_opts' => array(
+		'piggyback' => false,
+	  ),
 	);
 	$zopts['tidemann'] = array(
 	  'syntax' => '', 
+	  'yaz_con_opts' => array(
+		'piggyback' => false,
+	  ),	
 	);
+	*/
 		
 	$hits = 0;
 	
 	$type = 'xml';
 	
-	$yaz_con_opts = array(
-		'piggyback' => false
-	);
-	
-	$id = yaz_connect($config['lib']['z3950'], $yaz_con_opts);
+	$id = yaz_connect($config['lib']['z3950'], $zopts[$system]['yaz_con_opts']);
 	yaz_element($id, "F");
 	yaz_syntax($id, $zopts[$system]['syntax']);
 	yaz_range($id, 1, 1);
