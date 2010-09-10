@@ -35,6 +35,10 @@ function get_config($lib = false) {
 	$c['records_max'] = 100;
 	$c['records_per_page'] = 10;
 
+	// Allowed formats
+	// Candidates can be found in the formats/ folder. Use the filename sans ".php" here
+	$c['allowed_formats'] = array('simple', 'isbn-plain');
+
 	// Caching
 	// Determining the the right amount of time here will probably need some experimentation
 	// Time to cache the raw results retrieved from Z39.50/SRU servers
