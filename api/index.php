@@ -55,7 +55,7 @@ if (!empty($_GET['q']) && !empty($_GET['library'])) {
   $args = array(
     'q' => $_GET['q'], 
     'library'    => $_GET['library'], 
-    'format'     => $_GET['format']     ? $_GET['format']     : 'plugin.simple',
+    'format'     => $_GET['format']     ? $_GET['format']     : 'simple',
     'page'       => $_GET['page']       ? $_GET['page']       : 0,
     // Not sure this should be settable from here? (Not implemented, anyway.) 
     // 'per_page'   => $_GET['per_page']   ? $_GET['per_page']   : 10,
@@ -70,7 +70,7 @@ if (!empty($_GET['q']) && !empty($_GET['library'])) {
   $args = array(
     'id'      => $_GET['id'], 
     'library' => $_GET['library'], 
-    'format'  => $_GET['format']     ? $_GET['format']     : 'plugin.simple',
+    'format'  => $_GET['format']     ? $_GET['format']     : 'simple',
   );
   $data = glitre_search($args);
 }

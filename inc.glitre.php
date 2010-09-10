@@ -365,9 +365,8 @@ function glitre_format($records, $format, $single_record, $num_of_records, $firs
 
 	global $config;
 
-	if (list($mode, $type) = explode('.', $format)) {
-		// TODO
-		$file = $config['base_path'] . 'plugin/' . $type . '.php';
+	if (in_array($format, $config['allowed_formats'])) {
+		$file = $config['base_path'] . 'formats/' . $format . '.php';
 		if (is_file($file)) {
 			include($file);	
 			if ($single_record) {	
@@ -379,6 +378,8 @@ function glitre_format($records, $format, $single_record, $num_of_records, $firs
 			// TODO: Log false use of format
 			return "$file not found!";
 		}
+	} else {
+		exit("Invalid format!");	
 	}
 
 }
