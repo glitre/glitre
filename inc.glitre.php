@@ -667,16 +667,22 @@ function massage_input($s) {
 }
 
 /*
-Av en eller annen grunn gir dette: 
+1. For some reason this: 
 $post->getField("zzz")->getSubfield("a")
-alltid dette: 
-[a]: Tittelen kommer her...
-Denne funksjonen kapper av de 5 første tegnene, slik at vi får ut den faktiske tittelen
+always gives this: 
+[a]: Title...
+This function chops off the first 5 characters
+
+2. Some servers return MARC21-style data, with trailing punctuation
+Remove that punctuation
 */
 
 function marctrim($s) {
 	
-	return substr($s, 5);
+	$s = substr($s, 5);
+	if (!substr_compare($s, ' :', -2, 2)) { $s = substr_replace($s, '', -2, 2);	}
+	if (!substr_compare($s, ' /', -2, 2)) { $s = substr_replace($s, '', -2, 2);	}
+	return $s;
 	
 }
 
