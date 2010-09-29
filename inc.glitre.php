@@ -680,8 +680,8 @@ Remove that punctuation
 function marctrim($s) {
 	
 	$s = substr($s, 5);
-	if (!substr_compare($s, ' :', -2, 2)) { $s = substr_replace($s, '', -2, 2);	}
-	if (!substr_compare($s, ' /', -2, 2)) { $s = substr_replace($s, '', -2, 2);	}
+	if (strlen($s) > 2 && !substr_compare($s, ' :', -2, 2)) { $s = substr_replace($s, '', -2, 2);	}
+	if (strlen($s) > 2 && !substr_compare($s, ' /', -2, 2)) { $s = substr_replace($s, '', -2, 2);	}
 	return $s;
 	
 }
