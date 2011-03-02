@@ -126,6 +126,8 @@ function get_basic_info($record) {
 }
 
 function get_detail($record) {
+	
+	global $config;
 
 	$out = '<div class="recorddetail">';
 
@@ -177,6 +179,12 @@ function get_detail($record) {
 	}
 	
 	$out .= '</div>' . "\n";
+	
+	// Check if the "oppnabib" plugin is active
+	if (in_array('oppnabib', $config['active_plugins'])) {
+		include('../plugins/oppnabib.php');
+		$out .= oppnabib_detail($record);
+	}
 	
 	return $out;
 	

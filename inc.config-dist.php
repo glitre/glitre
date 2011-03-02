@@ -38,6 +38,15 @@ function get_config($lib = false) {
 	// Allowed formats
 	// Candidates can be found in the formats/ folder. Use the filename sans ".php" here
 	$c['allowed_formats'] = array('simple', 'isbn-plain');
+	
+	// Active plugins
+	// Candidates can be found in the plugins/ folder. Use the filename sans ".php" here
+	$c['active_plugins'] = array('oppnabib');
+	
+	// Öppna bibliotek plugin config
+	$c['plugins']['oppnabib']['baseurl']  = 'http://example.com/';
+	$c['plugins']['oppnabib']['username'] = '';
+	$c['plugins']['oppnabib']['password'] = '';
 
 	// Caching
 	// Determining the the right amount of time here will probably need some experimentation
