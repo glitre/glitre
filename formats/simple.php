@@ -50,10 +50,25 @@ function format($records, $num_of_records, $first_record, $last_record) {
 }
 
 function format_single($records) {
-	
+
+	global $config;
 	$out = '';
+
+	// Prepare the image plugins
+	$plugin_functions = array();
+	foreach ($config['active_plugins']['image'] as $plugin => $plugin_function) {
+		include('../plugins/' . $plugin . '.php');
+		$image_plugin_functions[] = $plugin_function;
+	}	
+	
 	foreach ($records as $rec) {
 		$out .= '<h2>' . get_basic_info($rec) . '</h2>';
+		// Iterate through the functions for the plugins
+		foreach ($image_plugin_functions as $func) {
+			if ($url = $func($rec)) {
+				$out .= '<img src="' . $url . '" />';
+			}
+		}
 		$out .= get_detail($rec);
 	}
 	

@@ -5,13 +5,13 @@ function oppnabib_detail($record, $style) {
   global $config;
 
   $title = '';
-  if ($record->getField("245")->getSubfield("a")) {
+  if ($record->getField("245") && $record->getField("245")->getSubfield("a")) {
     $title = urlencode(marctrim($record->getField("245")->getSubfield("a")));
   } 
   
   $authorfirstname = '';
   $authorlastname  = '';
-  if ($record->getField("100")->getSubfield("a")) {
+  if ($record->getField("100") && $record->getField("100")->getSubfield("a")) {
     $author = marctrim($record->getField("100")->getSubfield("a"));
     if (substr_count($author, ',') > 0) {
       list($authorlastname, $authorfirstname) = explode(", ", $author);
