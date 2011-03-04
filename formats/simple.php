@@ -23,13 +23,21 @@ along with Glitre.  If not, see <http://www.gnu.org/licenses/>.
 
 function format($records, $num_of_records, $first_record, $last_record) {
 
-// print_r($records); 
-// exit;
+	global $config;
+
+	if (in_array('oppnabib', $config['active_plugins'])) {
+		include('../plugins/oppnabib.php');
+    }
 
 	$out = '<p>Displaying ' . $first_record . ' to ' . $last_record . ' of ' . $num_of_records . ' hits.</p>';
 	$out .= '<ul>';
 	foreach ($records as $rec) {
-		$out .= '<li>' . get_basic_info($rec) . '</li>';
+		$out .= '<li>' . get_basic_info($rec);
+		// Plugin: Öppna bibliotek
+		if (in_array('oppnabib', $config['active_plugins'])) {
+			$out .= oppnabib_detail($rec, 'compact');
+	    }
+		$out .= '</li>';
 	}
 	$out .= '</ul>';
 	
@@ -180,10 +188,10 @@ function get_detail($record) {
 	
 	$out .= '</div>' . "\n";
 	
-	// Check if the "oppnabib" plugin is active
+	// Plugin: Öppna bibliotek
 	if (in_array('oppnabib', $config['active_plugins'])) {
 		include('../plugins/oppnabib.php');
-		$out .= oppnabib_detail($record);
+		$out .= oppnabib_detail($record, 'full');
 	}
 	
 	return $out;
