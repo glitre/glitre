@@ -1,5 +1,8 @@
 <?php
 
+function oppnabib_detail_compact($record) { return oppnabib_detail($record, 'compact'); }
+function oppnabib_detail_full($record)    { return oppnabib_detail($record, 'full'); }
+
 function oppnabib_detail($record, $style) {
 	
   global $config;

@@ -10,7 +10,7 @@ function _get_image_url($record, $size) {
     $isbn = marctrim($record->getField("020")->getSubfield("a"));
     $isbn = str_replace('-', '', $isbn);
     $isbn = str_replace(' ', '', $isbn);
-    return 'http://covers.openlibrary.org/b/isbn/' . $isbn . '-' . $size . '.jpg';
+    return '<img src="http://covers.openlibrary.org/b/isbn/' . $isbn . '-' . $size . '.jpg" class="openlibrary_image cover_image_' . $size . '">';
   } else {
     return false;	
   }

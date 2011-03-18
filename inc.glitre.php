@@ -686,4 +686,45 @@ function marctrim($s) {
 	
 }
 
+/*
+Run plugins and return their output
+
+In config.php, plugins are activated by lines such as these: 
+	$c['active_plugins']['hitlist']['oppnabib'] = 'oppnabib_detail_compact';
+	$c['active_plugins']['hitlist']['openlibrary_image'] = 'openlibrary_image_get_image_url_s';
+* The name of the second array ('hitlist' in this example) is the name of the location where the info from the   
+  plugin will be displayed. Different formats may choose to do different things based on this. 
+* The name of the third array ('oppnabib' and 'openlibrary_image') is the name of the plugin, and should
+  correspond to a file called e.g. plugins/oppnabib.php
+* The value of the expression is the name of the function (provided by the plugin) that should be run to get
+  the information that is wanted
+  
+Arguments: 
+$location = the location to run plugins for, as described above
+$record = the MARC record that the information should be based on
+*/  
+
+function run_plugins($location, $record) {
+
+	global $config;
+	$out = '';
+		
+	// Prepare the plugins
+	$plugin_functions = array();
+	foreach ($config['active_plugins'][$location] as $plugin => $plugin_function) {
+		include_once('../plugins/' . $plugin . '.php');
+		$plugin_functions[] = $plugin_function;
+	}
+	
+	// Iterate through the functions for the plugins and display info
+	foreach ($plugin_functions as $func) {
+		if ($info = $func($record)) {
+			$out .= $info;
+		}
+	}
+	
+	return $out;
+	
+};
+
 ?>
