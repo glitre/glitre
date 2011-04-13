@@ -1,9 +1,9 @@
 <?php
 
-function oppnabib_detail_compact($record) { return oppnabib_detail($record, 'compact'); }
-function oppnabib_detail_full($record)    { return oppnabib_detail($record, 'full'); }
+function oppnabib_detail_compact($record, $loggedin_user) { return oppnabib_detail($record, 'compact', $loggedin_user); }
+function oppnabib_detail_full($record, $loggedin_user)    { return oppnabib_detail($record, 'full',    $loggedin_user); }
 
-function oppnabib_detail($record, $style) {
+function oppnabib_detail($record, $style, $loggedin_user) {
 	
   global $config;
 
@@ -37,6 +37,40 @@ function oppnabib_detail($record, $style) {
   
 	  $out = '<div class="oppnabib"><h2>Öppna bibliotek - ' . urldecode($title) . '</h2>';
 	  
+	  if (!empty($loggedin_user)) {
+	  	  // Check if a user has added an opinion
+	  	  if (!empty($_POST['oppnabib_assessment_header_input'])) {
+	  	  	  $header = strip_tags($_POST['oppnabib_assessment_header_input']);
+	  	  	  $text = strip_tags($_POST['oppnabib_assessment_text_input']);
+	  	  	  // check that the grade is an integer, set to zero otherwise
+	  	  	  $grade = 0;
+	  	  	  if (is_int(strip_tags($_POST['oppnabib_grade_input']))) {
+	  	  	    $grade = $_POST['oppnabib_grade_input'];
+	  	  	  } 
+	  	  	  // This is probably not needed, since the user's input will be in the list below
+	  	  	  $out .= format_assessment($header, $text, $grade, $loggedin_user);
+	  	  } else {
+			  $out .= '<h3>Si din mening</h3>';
+			  $out .= '<p>Du er logget inn som: ' . $loggedin_user . '</p>';
+			  $out .= '<form method="post">';
+			  $out .= 'Omtalens tittel:<br /><input type="text" name="oppnabib_assessment_header_input" size="40" /><br />';
+			  $out .= 'Omtale:<br /><textarea name="oppnabib_assessment_text_input" cols="40" rows="10" ></textarea><br />';
+			  $out .= '<select name="oppnabib_grade_input">';
+			  $out .= '<option value="">Gi karakter</option>';
+			  $out .= '<option value="1">&#10029;</option>';
+			  $out .= '<option value="2">&#10029;&#10029;</option>';
+			  $out .= '<option value="3">&#10029;&#10029;&#10029;</option>';
+			  $out .= '<option value="4">&#10029;&#10029;&#10029;&#10029;</option>';
+			  $out .= '<option value="5">&#10029;&#10029;&#10029;&#10029;&#10029;</option>';
+			  $out .= '<option value="5">&#10029;&#10029;&#10029;&#10029;&#10029;&#10029;</option>';
+			  $out .= '</select><br />';
+			  $out .= '<input type="submit">';
+			  $out .= '</form>';
+	  	  }
+	  }
+	  
+	  $out .= '<h3>Hva andre mener</h3>';
+	  
 	  // $out .= '<p>Antall meninger: ' . $bookdata->hitcount . '</p>';
 	  if ($bookdata->average_grade) {
 	    $out .= '<p>Gjennomsnittlig karakter: <span class="oppnabib_average_grade">' . $bookdata->average_grade . '</span></p>';
@@ -47,19 +81,7 @@ function oppnabib_detail($record, $style) {
 	  // Output every assessment
 	  foreach ($bookdata->assessment as $assessment) {
 	    $out .= '<p class="oppnabib_assessment">';
-	    $header = $assessment->comment_header;
-	    $text   = $assessment->comment_text;
-	    if ($header != '' || $text != '') {
-	    	if ($header != '') {
-	    	  $out .= '<strong class="oppnabib_assessment_header">' . $header . '</strong> ';
-	    	}
-	    	if ($header != '') {
-	    	  $out .= '<span class="oppnabib_assessment_text">' . $text . '</span>';
-	    	}
-	    	$out .= "<br />\n";
-	    }
-	    $out .= '<span class="oppnabib_grade">' . str_repeat('&#10029;', $assessment->grade) . '</span> ';
-	    $out .= '<span class="oppnabib_username">' . $assessment->username . '</span> ';
+	    $out .= format_assessment($assessment->comment_header, $assessment->comment_text, $assessment->grade, $assessment->username);
 	    $out .= '(<span class="oppnabib_user_lib_name">' . $assessment->user_lib_name . '</span>)';
 	    $out .= "</p>\n";
 	  }
@@ -80,6 +102,26 @@ function oppnabib_detail($record, $style) {
   
   return $out;
 
+}
+
+function format_assessment($header, $text, $grade, $loggedin_user) {
+	
+	$out = '';
+
+	if ($header != '' || $text != '') {
+		if ($header != '') {
+			$out .= '<strong class="oppnabib_assessment_header">' . $header . '</strong> ';
+		}
+		if ($header != '') {
+			$out .= '<span class="oppnabib_assessment_text">' . $text . '</span>';
+		}
+		$out .= "<br />\n";
+	}
+	$out .= '<span class="oppnabib_grade">' . str_repeat('&#10029;', $grade) . '</span> ';
+	$out .= '<span class="oppnabib_username">' . $loggedin_user . '</span> ';
+	
+	return $out;
+	
 }
 
 function getOppnabib($url, $auth = false) {

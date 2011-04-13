@@ -176,7 +176,7 @@ function glitre_search($args) {
 	// The position of the first record needs to be bumped up by one
 	$first_record++;
 	// Format the records
-	return glitre_format($records, $args['format'], $single_record, $num_of_records, $first_record, $last_record, $args['content_type']);
+	return glitre_format($records, $args['format'], $single_record, $num_of_records, $first_record, $last_record, $args['content_type'], $args['loggedin_user']);
 }
 
 /***************************************
@@ -361,7 +361,7 @@ function glitre_xslt_sort($marcxml, $sort_by = 'year', $sort_order = 'descending
 STEP THREE - Format the records as desired 
 ******************************************/
 
-function glitre_format($records, $format, $single_record, $num_of_records, $first_record, $last_record, $content_type = false){
+function glitre_format($records, $format, $single_record, $num_of_records, $first_record, $last_record, $content_type = false, $loggedin_user = false){
 
 	global $config;
 
@@ -370,9 +370,9 @@ function glitre_format($records, $format, $single_record, $num_of_records, $firs
 		if (is_file($file)) {
 			include($file);	
 			if ($single_record) {	
-				return format_single($records);
+				return format_single($records, $loggedin_user);
 			} else {
-				return format($records, $num_of_records, $first_record, $last_record);
+				return format($records, $num_of_records, $first_record, $last_record, $loggedin_user);
 			}
 		} else {
 			// TODO: Log false use of format
@@ -704,7 +704,7 @@ $location = the location to run plugins for, as described above
 $record = the MARC record that the information should be based on
 */  
 
-function run_plugins($location, $record) {
+function run_plugins($location, $record, $loggedin_user) {
 
 	global $config;
 	$out = '';
@@ -718,7 +718,7 @@ function run_plugins($location, $record) {
 	
 	// Iterate through the functions for the plugins and display info
 	foreach ($plugin_functions as $func) {
-		if ($info = $func($record)) {
+		if ($info = $func($record, $loggedin_user)) {
 			$out .= $info;
 		}
 	}

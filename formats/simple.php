@@ -21,13 +21,13 @@ along with Glitre.  If not, see <http://www.gnu.org/licenses/>.
 
 */
 
-function format($records, $num_of_records, $first_record, $last_record) {
+function format($records, $num_of_records, $first_record, $last_record, $loggedin_user) {
 
 	$out = '<p>Displaying ' . $first_record . ' to ' . $last_record . ' of ' . $num_of_records . ' hits.</p>';
 	$out .= '<ul>';
 	foreach ($records as $rec) {
-		$out .= '<li>' . get_basic_info($rec);
-		$out .= run_plugins('hitlist', $rec);
+		$out .= '<li>' . get_basic_info($rec, $loggedin_user);
+		$out .= run_plugins('hitlist', $rec, $loggedin_user);
 		$out .= '</li>';
 	}
 	$out .= '</ul>';
@@ -40,17 +40,17 @@ function format($records, $num_of_records, $first_record, $last_record) {
 
 }
 
-function format_single($records) {
+function format_single($records, $loggedin_user) {
 
 	$out = '';
 
 	foreach ($records as $rec) {
 		// Display the title
-		$out .= '<h2>' . get_basic_info($rec) . '</h2>';
-		$out .= run_plugins('detail_above', $rec);
+		$out .= '<h2>' . get_basic_info($rec, $loggedin_user) . '</h2>';
+		$out .= run_plugins('detail_above', $rec, $loggedin_user);
 		// Display the main bulk of the record
-		$out .= get_detail($rec);
-		$out .= run_plugins('detail_below', $rec);
+		$out .= get_detail($rec, $loggedin_user);
+		$out .= run_plugins('detail_below', $rec, $loggedin_user);
 	}
 	
 	$ret = array(
@@ -86,11 +86,8 @@ function format_error($err) {
 	
 }
 
-function get_basic_info($record) {
+function get_basic_info($record, $loggedin_user) {
 	
-	// print_r($record); 
-	// exit;
-
 	global $config;
 	
 	// Get the ID and create a link to the record in the OPAC
@@ -109,7 +106,12 @@ function get_basic_info($record) {
     if ($record->getField("245") && $record->getField("245")->getSubfield("a")) {
     	// Remove . at the end of a title
     	$title = preg_replace("/\.$/", "", marctrim($record->getField("245")->getSubfield("a")));
-		$out .= '<a href="?library=' . $_GET['library'] . '&id=' . $bibid . '">' . $title . '</a>' . "\n";
+    	$urlfragment = '?library=' . $_GET['library'] . '&id=' . $bibid;
+    	// This is mostly for debugging and demo purposes
+    	if ($loggedin_user) {
+    	    $urlfragment .= '&loggedin_user=1';	
+    	}
+		$out .= '<a href="' . $urlfragment . '">' . $title . '</a>' . "\n";
     }
     if ($record->getField("245") && $record->getField("245")->getSubfield("b")) {
     	$out .= ' : <span class="subtitle">' . marctrim($record->getField("245")->getSubfield("b")) . "</span>\n";
@@ -129,7 +131,7 @@ function get_basic_info($record) {
 	
 }
 
-function get_detail($record) {
+function get_detail($record, $loggedin_user) {
 	
 	global $config;
 

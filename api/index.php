@@ -43,7 +43,7 @@ if (empty($_GET['q']) && empty($_GET['id'])) {
   exit;
 }
 
-// Check that page is a number, set it ti 0 otherwise
+// Check that page is a number, set it to 0 otherwise
 if (!empty($_GET['page']) && !is_int((int) $_GET['page'])) {
 	$_GET['page'] = 0;
 }
@@ -54,23 +54,28 @@ $data = '';
 if (!empty($_GET['q']) && !empty($_GET['library'])) {
   $args = array(
     'q' => $_GET['q'], 
-    'library'    => $_GET['library'], 
-    'format'     => $_GET['format']     ? $_GET['format']     : 'simple',
-    'page'       => $_GET['page']       ? $_GET['page']       : 0,
-    // Not sure this should be settable from here? (Not implemented, anyway.) 
-    // 'per_page'   => $_GET['per_page']   ? $_GET['per_page']   : 10,
-    'sort_by'    => $_GET['sort_by']    ? $_GET['sort_by']    : 'year',
-    'sort_order' => $_GET['sort_order'] ? $_GET['sort_order'] : 'descending', 
-    'content_type' => true, 
+    'library'       => $_GET['library'], 
+    'format'        => $_GET['format']        ? $_GET['format']     : 'simple',
+    'page'          => $_GET['page']          ? $_GET['page']       : 0,
+    'sort_by'       => $_GET['sort_by']       ? $_GET['sort_by']    : 'year',
+    'sort_order'    => $_GET['sort_order']    ? $_GET['sort_order'] : 'descending', 
+    'content_type'  => true, 
+    // Pass an ID for the currently logged in user to Glitre
+    // It is the responsibility of the calling application to authenticate the user before passing
+    // her ID to Glitre. Glitre has no way to know about valid and invalid users, except being told
+    // about them by the calling application. 
+    'loggedin_user' => $_GET['loggedin_user'] ? 'dummyuser'         : '',
   );
   $data = glitre_search($args);
 
 // Display one record	
 } elseif (!empty($_GET['id'])) {
   $args = array(
-    'id'      => $_GET['id'], 
-    'library' => $_GET['library'], 
-    'format'  => $_GET['format']     ? $_GET['format']     : 'simple',
+    'id'            => $_GET['id'], 
+    'library'       => $_GET['library'], 
+    'format'        => $_GET['format']        ? $_GET['format'] : 'simple',
+    // Pass an ID for the currently logged in user to Glitre - see comments above! 
+    'loggedin_user' => $_GET['loggedin_user'] ? 'dummyuser'     : '',
   );
   $data = glitre_search($args);
 }

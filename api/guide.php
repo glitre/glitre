@@ -4,7 +4,7 @@
 </head>
 <body>
 
-<div style="margin-left: 40%;">
+<div style="margin-left: 40%; margin-right: 30%;">
 
 <h1>Glitre guide</h1>
 
@@ -56,10 +56,14 @@ foreach($config['libraries'] as $key => $value) {
 
 <tr><td><tt>page</tt></td><td>no</td><td><input type="text" name="page" /></td>
 
+<tr><td><tt>loggedin_user</tt></td><td>testing</td><td><input type="checkbox" name="loggedin_user" value="1" /></td>
+
 <tr><td></td><td></td><td><input type="submit" value="Test it!" /></td>
 
 </table>
 </form>
+
+<p>Parameters marked with "testing" are not a part of the API, but are provided to mimick functions that should be taken care of by the software that includes Glitre or uses its API.</p>
 
 </div>
 

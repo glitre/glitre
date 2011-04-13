@@ -1,8 +1,8 @@
 <?php
 
-function openlibrary_image_get_image_url_s($record) { return _get_image_url($record, 'S'); }
-function openlibrary_image_get_image_url_m($record) { return _get_image_url($record, 'M'); }
-function openlibrary_image_get_image_url_l($record) { return _get_image_url($record, 'L'); }
+function openlibrary_image_get_image_url_s($record, $loggedin_user) { return _get_image_url($record, 'S'); }
+function openlibrary_image_get_image_url_m($record, $loggedin_user) { return _get_image_url($record, 'M'); }
+function openlibrary_image_get_image_url_l($record, $loggedin_user) { return _get_image_url($record, 'L'); }
 
 function _get_image_url($record, $size) {
 	
