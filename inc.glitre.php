@@ -406,16 +406,13 @@ function glitre_format_error($err, $format){
 FUNCTIONS
 *********/
 
-/*
-Utfører Z39.50-søket og returnerer postene i MARCXML-format, som en streng
-*/
+// Perform a Z39.50-search and return MARCXML
 function get_z($ccl) {
 	
 	$out = '';
 	
 	/*
-	hvis ikke ccl-parameteren er oppgitt får man en tom XML-struktur
-	tilbake med records som rotnode
+	Return an empty set if CCL is not set
 	*/
 	if (!isset($ccl))
 	{
@@ -423,17 +420,12 @@ function get_z($ccl) {
 		$out .= "<records>\n</records>";
 	} 
 	/*
-	hvis ccl-parameteren er satt får man MARCXML basert på ccl-
-	parameteren tilbake
+	Do the actual search
 	*/
 	else
 	{
 		
 		$out .= "<records>\n";
-		/*
-		kjører funksjonen yazCclArray som returnerer en array med
-		MARCXML-data basert på $query. 
-		*/
 		$fetch = yazCclArray($ccl);
 		
 		if ($fetch['error']) {
@@ -441,25 +433,20 @@ function get_z($ccl) {
 		}
 		
 		/*
-		henter ut verdien med nøkkelen 'result'. det er her selve
-		dataene ligger lagret. $fetch-arrayen har også en verdi med
-		nøkkel 'hits' som forteller hvor mange records $fetch inneholder
+		'result' gives us the actual data
+		'hits' is the number of records in $fetch
 		*/
 		$data = $fetch['result'];
-		//går gjennom $data-arrayen
 		foreach ($data as $record)
 		{
-			//splitter på nylinjetegn
 			$lines = explode("\n", $record);
 			/*
-			overskriver den første noden i hver record med en
-			'<record>'-node. dette gjør at namespacet blir fjernet
-			og gjør parsing og transformering av XML lettere
+			Replace the first node in each record with a '<record>'-node. 
+			This removes the namespaceand makes parsing and transforming easier
 			*/
 			$lines[0] = "<record>";
 			/*
-			samler arrayen $lines til en streng og konverterer til
-			utf-8
+			Turn the array $lines into a string and make it utf-8
 			*/
 			$out .= utf8_encode(implode("\n", $lines));
 		}
@@ -471,9 +458,8 @@ function get_z($ccl) {
 }
 
 /*
-returnerer en array med XML-data, hvert element i arrayen
-inneholder XML-data om en record. funksjonen fungerer omtrent
-på samme måte som yazCclSearch
+Returns an array of XML-data, where each element has XML-data about a record. 
+Works much the same way as yazCclSearch
 */
 function yazCclArray($ccl)
 {
@@ -546,7 +532,6 @@ function yazCclArray($ccl)
 		// See http://wiki.biblab.no/index.php/Z39.50%2C_SRU_og_sortering for details
 		// yaz_sort($id, "1=31 di");
 		$rpn = $cclresult["rpn"];
-		// Debug
 		yaz_search($id, "rpn", utf8_decode($rpn));
 	}
 	
@@ -587,23 +572,7 @@ function yazCclArray($ccl)
 }
 
 /*
-kvalifikatorsetup til yaz_ccl_conf, disse verdiene er hentet fra
-BIB-1 attributtsettet funnet her:
-http://bibsyst.no/produkter/bibliofil/bib1.php
-ti => 1=4
-ti = tittel
-1 = structure (virker bare med 1 her)
-4 = use attribute
-
-KVALIFIKATORFORKLARING:
-ti -> tittel
-kl -> klassifikasjon (dewey)
-fo -> forfatter
-år -> år
-sp -> språk
-eo -> emneord
-is -> isbn
-tnr -> tittelnummer
+Very simple setup of Z39.50 config
 */
 function get_zconfig() {
 
@@ -615,10 +584,10 @@ function get_zconfig() {
 }
 
 /*
-Utfører SRU-søket og returnerer postene i MARCXML-format, som en streng. 
+Do an SRU search and return records in MARCXML-format 
 Argumenter: 
-query = det søkebegrepet som det skal søkes etter
-limit = maks antall poster som skal returneres
+query = what to search for
+limit = max number of records to return
 */
 function get_sru($query) {
 	
@@ -629,7 +598,7 @@ function get_sru($query) {
 	$startRecord = 1; 
 	$maximumRecords = $config['records_max'];
 	
-	// Bygg opp SRU-urlen
+	// Build the SRU-url
 	$sru_url = $config['lib']['sru'];
 
 	$sru_url .= "?operation=searchRetrieve";
@@ -642,10 +611,10 @@ function get_sru($query) {
 	// Debug
 	// echo($sru_url);
 
-	// Hent SRU-data
+	// Retrieve the data
 	$sru_data = file_get_contents($sru_url) or exit("Feil");
 	
-	// Massér SRU-dataene slik at vi lett kan behandle dem med funksjonene fra File_MARC
+	// Prepare the data for use with File_MARC
 	$sru_data = str_replace("<record xmlns=\"http://www.loc.gov/MARC21/slim\">", "<record>", $sru_data);
 	preg_match_all('/(<record>.*?<\/record>)/si', $sru_data, $treff);
 	$marcxml = implode("\n\n", $treff[0]);
@@ -657,9 +626,9 @@ function get_sru($query) {
 
 function massage_input($s) {
 
-	// Fjern komma fra feks Asbjørnsen, Kristin
+	// Remove comma from e.g. Asbjørnsen, Kristin
 	$s = str_replace(',', '', $s);
-	// Fjern &
+	// Remove &
 	$s = str_replace('&', '', $s);
 	
 	return $s;
