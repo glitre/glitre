@@ -1,4 +1,5 @@
-The Glitre project aims to build a component that will make it easy to integrate the following into a CMS (or other system): 
+The Glitre project aims to build a component that will make it easy to 
+integrate the following into a CMS (or other system): 
 
 - Data from a library catalogue, retrieved through Z39.50 or SRU
 - Data from a Norwegian implementation of Oppna bibliotek
@@ -10,7 +11,7 @@ http://github.com/glitre/glitre
 
 * LICENSE
 
-Copyright 2010 ABM-utvikling
+Copyright 2010-2011 ABM-utvikling/Nasjonalbiblioteket
 
 This file is part of Glitre.
 

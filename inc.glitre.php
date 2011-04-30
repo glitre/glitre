@@ -2,7 +2,7 @@
 
 /* 
 
-Copyright 2010 ABM-utvikling
+Copyright 2010-2011 ABM-utvikling/Nasjonalbiblioteket
 
 This file is part of Glitre.
 
