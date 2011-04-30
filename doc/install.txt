@@ -1,0 +1,99 @@
+Installing Glitre
+
+This document will tell you how to get Glitre up and running. 
+
+Commands that should be given on the command line are prefixed with a ">". 
+
+*** ASSUMPTIONS
+
+This installation guide will take as it's starting point a very basic install of Debian 6. 
+
+It assumes you have sudo privileges on the machine. 
+
+*** GETTING GLITRE
+
+The source code for Glitre can be retrieved from this site: 
+https://github.com/glitre/glitre
+
+There are two main options: 
+
+1. Download a packaged version
+
+Choose either .tar.gz or .zip: 
+
+.tar.gz
+
+> wget -O glitre.tar.gz --no-check-certificate https://github.com/glitre/glitre/tarball/master
+> tar -xvf glitre.tar.gz
+
+.zip
+
+> wget -O glitre.zip --no-check-certificate https://github.com/glitre/glitre/zipball/master
+> unzip glitre.zip
+
+You may have to install unzip before doing this: 
+
+> sudo apt-get install unzip
+
+Unpack the package of your choice, and you have a snapshot of the code. The snapshot will
+probably be in a directory called something like glitre-glitre-490f44e - you might want to 
+rename this before proceeding: 
+
+> mv glitre-glitre-490f44e glitre
+
+2. Use Git - recommended
+
+With Git you have an easy way to update Glitre, and it's easy to make and track local 
+changes, and share them with the world, if you feel so inclined. 
+
+First of all you need to install Git: 
+
+> sudo apt-get install git-core git-doc
+
+You can now clone the Glitre repository:
+
+> git clone git://github.com/glitre/glitre.git
+
+This will create a directory called "glitre" below your current directory. 
+
+*** PREREQUISITES
+
+If you want to run Glitre as a standalone you will need to install Apache and PHP. 
+(You might want to do this if you want to run Glitre on it's own server and just 
+access the API.   
+
+> sudo apt-get install apache2 php5 libapache2-mod-php5 php5-curl php-pear smarty
+
+If you are integrating Glitre with e.g. a CMS, Apache and PHP will probably be in place 
+already, but you might still need to install these: 
+
+> sudo apt-get install php5-curl php-pear smarty
+
+You need to install some PEAR modules:
+
+> sudo pear install Cache_Lite
+> sudo pear install File_MARC
+
+Installing File_MARC will probably fail, follow the instructions and do something like 
+this instead: 
+
+> sudo pear install channel://pear.php.net/Structures_LinkedList-0.2.2
+> sudo pear install channel://pear.php.net/File_MARC-0.6.2
+
+*** CONFIGURE GLITRE
+
+Rename inc.config-dist.php: 
+
+> mv inc.config-dist.php inc.config.php
+
+Edit inc.config.php with your favourite editor. Some sample libraries are included and should
+work as is, but you might at least want to have a look at the base_path variable. 
+
+*** USING GLITRE
+
+If you want to use Glitre as an include, you can probably keep the files anywhere you want, 
+and just include inc.glitre.php in your application. 
+
+If you want to use Glitre's API you need to have it in a web accessible location. If you use
+the default setup described above you could for example move the glitre folder to 
+/var/www/glitre. This should make the API available as localhost/glitre/api/
