@@ -365,8 +365,10 @@ function glitre_format($records, $format, $single_record, $num_of_records, $firs
 
 	global $config;
 
-	if (in_array($format, $config['allowed_formats'])) {
-		$file = $config['base_path'] . 'formats/' . $format . '.php';
+        list($mode, $type) = explode('.', $format);
+
+	if (in_array($type, $config['allowed_formats'])) {
+		$file = $config['base_path'] . 'formats/' . $type . '.php';
 		if (is_file($file)) {
 			include($file);	
 			if ($single_record) {	
