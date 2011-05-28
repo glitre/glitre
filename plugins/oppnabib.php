@@ -41,6 +41,8 @@ function oppnabib_detail($record, $style, $loggedin_user) {
     $author = marctrim($record->getField("100")->getSubfield("a"));
     if (substr_count($author, ',') > 0) {
       list($authorlastname, $authorfirstname) = explode(", ", $author);
+      $authorlastname = urlencode($authorlastname);
+      $authorfirstname = urlencode($authorfirstname);
     }
   }
   
