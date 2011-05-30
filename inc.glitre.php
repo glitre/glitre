@@ -388,9 +388,10 @@ function glitre_format_error($err, $format){
 
 	global $config;
 
-	if (list($mode, $type) = explode('.', $format)) {
+//	if (list($mode, $type) = explode('.', $format)) {
 		// TODO
-		$file = $config['base_path'] . 'plugin/' . $type . '.php';
+		// $file = $config['base_path'] . 'plugin/' . $type . '.php';
+		$file = $config['base_path'] . 'formats/' . $format . '.php';
 		if (is_file($file)) {
 			include($file);	
 			return format_error($err);
@@ -398,7 +399,7 @@ function glitre_format_error($err, $format){
 			// TODO: Log false use of format
 			return "$file not found!";
 		}
-	}
+//	}
 
 }
 
