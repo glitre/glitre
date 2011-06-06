@@ -51,7 +51,7 @@ function glitre_search($args) {
 	if (!empty($args['q'])) {
 
 		// Set default values if these two are empty, otherwise the cache won't work properly
-		$args['sort_by'] = $args['sort_by'] ? $args['sort_by'] : $config['default_sort_by'];
+		$args['sort_by']    = $args['sort_by']    ? $args['sort_by']    : $config['default_sort_by'];
 		$args['sort_order'] = $args['sort_order'] ? $args['sort_order'] : $config['default_sort_order'];
 		// Calculate the cache id for the sorted results
 		$sorted_cache_id = 'sorted_' . $args['sort_by'] . '_' . $args['sort_order'] . '_' . $args['library'] . '_' . md5(strtolower($args['q']));
@@ -599,6 +599,10 @@ function get_sru($query) {
 	
 	$version = '1.2';
 	$recordSchema = 'marcxml';
+	// Special treatment for bibsys
+	if ($config['lib']['system'] == 'bibsys') {
+	    $recordSchema = 'marcxchange';
+	}
 	$startRecord = 1; 
 	$maximumRecords = $config['records_max'];
 	
@@ -610,18 +614,28 @@ function get_sru($query) {
 	$sru_url .= "&query=$query";
 	$sru_url .= "&recordSchema=$recordSchema";
 	$sru_url .= "&startRecord=$startRecord";
-	$sru_url .= "&maximumRecords=$maximumRecords";
+	// Special treatment for bibsys
+	if ($config['lib']['system'] != 'bibsys') {
+	    $sru_url .= "&maximumRecords=$maximumRecords";
+	}
 	
 	// Debug
-	// echo($sru_url);
+	// exit($sru_url);
 
 	// Retrieve the data
-	$sru_data = file_get_contents($sru_url) or exit("Feil");
+	$sru_data = file_get_contents($sru_url) or exit("Unknown error encountered when retrieving SRU data from " . $config['lib']['sru']);
 	
 	// Prepare the data for use with File_MARC
 	$sru_data = str_replace("<record xmlns=\"http://www.loc.gov/MARC21/slim\">", "<record>", $sru_data);
-	preg_match_all('/(<record>.*?<\/record>)/si', $sru_data, $treff);
-	$marcxml = implode("\n\n", $treff[0]);
+
+    // FIXME Ugly hack - special treatment for data from BIBSYS
+    // This should probably be handled more gracefully by actually interpreting the
+    // namespace(s) properly...
+    $sru_data = str_replace('<marc:',  '<',  $sru_data);
+    $sru_data = str_replace('</marc:', '</', $sru_data);
+
+	preg_match_all('/(<record.*?>.*?<\/record>)/si', $sru_data, $matches);
+	$marcxml = implode("\n\n", $matches[0]);
 	$marcxml = '<?xml version="1.0" encoding="utf-8"?>' . "\n<collection>\n$marcxml\n</collection>";
 	
 	return $marcxml;
