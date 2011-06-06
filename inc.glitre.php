@@ -501,6 +501,9 @@ function yazCclArray($ccl)
 	  ),
 	);
 	/*
+	The Glitre project has not been able to find sample servers fot these
+	systems, even after asking the vendors if any exist:
+	
 	$zopts['reindex'] = array(
 	  'syntax' => '', 
 	  'yaz_con_opts' => array(
@@ -586,7 +589,7 @@ function get_zconfig() {
 
 /*
 Do an SRU search and return records in MARCXML-format 
-Argumenter: 
+Arguments: 
 query = what to search for
 limit = max number of records to return
 */
