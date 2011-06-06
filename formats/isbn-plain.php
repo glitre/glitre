@@ -26,7 +26,7 @@ function format($records, $num_of_records, $first_record, $last_record) {
 	$out = '';
 
 	foreach ($records as $rec) {
-		$isbns = $rec['marcobj']->getFields('020');
+		$isbns = $rec->getFields('020');
 		if ($isbns) {
 			foreach ($isbns as $isbn) {
 				$thisisbn = marctrim($isbn->getSubfield("a"));
