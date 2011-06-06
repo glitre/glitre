@@ -91,7 +91,7 @@ function get_config($lib = false) {
 		'records_max' => 10, 
 		'records_per_page' => 4, 
 		'system' => 'bibsys',
-		'sru'      => 'http://sru.bibsys.no/services/sru', 
+		'sru'      => 'http://sru.bibsys.no/search/biblio', 
 		'item_url' => '?'
 	);	
 	$l['deich'] = array(
