@@ -85,7 +85,7 @@ if (!empty($_GET['q']) && !empty($_GET['library'])) {
     // It is the responsibility of the calling application to authenticate the user before passing
     // her ID to Glitre. Glitre has no way to know about valid and invalid users, except being told
     // about them by the calling application. 
-    'loggedin_user' => $_GET['loggedin_user'] ? 'dummyuser'         : '',
+    'loggedin_user' => $_GET['loggedin_user'] ? 'dummyuser' : '',
   );
   $data = glitre_search($args);
 
